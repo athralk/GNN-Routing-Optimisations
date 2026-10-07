@@ -1,0 +1,68 @@
+[train] 3000 train / 200 val graphs, 1,021,600 train nodes, loaded in 3.1s
+[train] device: cuda (NVIDIA GeForce RTX 4060 Laptop GPU)
+[ref]   mean   mse 0.01511 | lat mae 0.1238 r2 -0.000 | via mae 0.0619 r2 -0.001
+[ref]   linear mse 0.00711 | lat mae 0.0648 r2 +0.567 | via mae 0.0456 r2 +0.396
+[train] model: 0 GATv2 layers, hidden 128, 35,586 parameters
+epoch   1  train 0.07107 | val mse 0.00786 | lat mae 0.0717 r2 +0.531 | via mae 0.0516 r2 +0.298  1.2s  * best
+epoch   2  train 0.00674 | val mse 0.00622 | lat mae 0.0586 r2 +0.623 | via mae 0.0445 r2 +0.467  1.0s  * best
+epoch   3  train 0.00601 | val mse 0.00578 | lat mae 0.0548 r2 +0.642 | via mae 0.0411 r2 +0.529  1.0s  * best
+epoch   4  train 0.00572 | val mse 0.00557 | lat mae 0.0531 r2 +0.649 | via mae 0.0387 r2 +0.568  1.0s  * best
+epoch   5  train 0.00559 | val mse 0.00544 | lat mae 0.0525 r2 +0.654 | via mae 0.0372 r2 +0.589  1.0s  * best
+epoch   6  train 0.00550 | val mse 0.00538 | lat mae 0.0517 r2 +0.656 | via mae 0.0363 r2 +0.603  1.0s  * best
+epoch   7  train 0.00545 | val mse 0.00536 | lat mae 0.0516 r2 +0.655 | via mae 0.0354 r2 +0.613  1.0s  * best
+epoch   8  train 0.00540 | val mse 0.00548 | lat mae 0.0517 r2 +0.643 | via mae 0.0350 r2 +0.619  1.0s
+epoch   9  train 0.00536 | val mse 0.00523 | lat mae 0.0507 r2 +0.661 | via mae 0.0343 r2 +0.626  0.9s  * best
+epoch  10  train 0.00532 | val mse 0.00522 | lat mae 0.0510 r2 +0.661 | via mae 0.0339 r2 +0.631  1.0s  * best
+epoch  11  train 0.00529 | val mse 0.00525 | lat mae 0.0514 r2 +0.659 | via mae 0.0341 r2 +0.627  0.9s
+epoch  12  train 0.00526 | val mse 0.00521 | lat mae 0.0513 r2 +0.661 | via mae 0.0336 r2 +0.636  1.0s  * best
+epoch  13  train 0.00525 | val mse 0.00511 | lat mae 0.0507 r2 +0.667 | via mae 0.0331 r2 +0.642  1.0s  * best
+epoch  14  train 0.00523 | val mse 0.00520 | lat mae 0.0511 r2 +0.660 | via mae 0.0328 r2 +0.641  0.9s
+epoch  15  train 0.00520 | val mse 0.00511 | lat mae 0.0504 r2 +0.665 | via mae 0.0322 r2 +0.650  1.0s  * best
+epoch  16  train 0.00521 | val mse 0.00511 | lat mae 0.0503 r2 +0.666 | via mae 0.0323 r2 +0.646  1.0s
+epoch  17  train 0.00518 | val mse 0.00509 | lat mae 0.0502 r2 +0.667 | via mae 0.0320 r2 +0.647  1.1s  * best
+epoch  18  train 0.00517 | val mse 0.00511 | lat mae 0.0508 r2 +0.664 | via mae 0.0319 r2 +0.651  1.2s
+epoch  19  train 0.00515 | val mse 0.00503 | lat mae 0.0499 r2 +0.670 | via mae 0.0313 r2 +0.657  1.1s  * best
+epoch  20  train 0.00514 | val mse 0.00501 | lat mae 0.0497 r2 +0.671 | via mae 0.0315 r2 +0.659  1.2s  * best
+epoch  21  train 0.00512 | val mse 0.00499 | lat mae 0.0496 r2 +0.672 | via mae 0.0309 r2 +0.661  1.3s  * best
+epoch  22  train 0.00511 | val mse 0.00500 | lat mae 0.0504 r2 +0.671 | via mae 0.0312 r2 +0.661  1.5s
+epoch  23  train 0.00510 | val mse 0.00499 | lat mae 0.0494 r2 +0.671 | via mae 0.0308 r2 +0.663  1.3s  * best
+epoch  24  train 0.00509 | val mse 0.00498 | lat mae 0.0491 r2 +0.672 | via mae 0.0305 r2 +0.666  1.4s  * best
+epoch  25  train 0.00509 | val mse 0.00498 | lat mae 0.0493 r2 +0.671 | via mae 0.0305 r2 +0.666  1.4s
+epoch  26  train 0.00507 | val mse 0.00499 | lat mae 0.0489 r2 +0.671 | via mae 0.0304 r2 +0.667  1.3s
+epoch  27  train 0.00506 | val mse 0.00498 | lat mae 0.0487 r2 +0.672 | via mae 0.0303 r2 +0.665  1.4s  * best
+epoch  28  train 0.00506 | val mse 0.00495 | lat mae 0.0494 r2 +0.674 | via mae 0.0300 r2 +0.667  1.4s  * best
+epoch  29  train 0.00507 | val mse 0.00492 | lat mae 0.0492 r2 +0.676 | via mae 0.0300 r2 +0.670  1.3s  * best
+epoch  30  train 0.00507 | val mse 0.00502 | lat mae 0.0494 r2 +0.668 | via mae 0.0300 r2 +0.669  1.3s
+epoch  31  train 0.00504 | val mse 0.00499 | lat mae 0.0487 r2 +0.670 | via mae 0.0299 r2 +0.670  1.4s
+epoch  32  train 0.00504 | val mse 0.00497 | lat mae 0.0488 r2 +0.672 | via mae 0.0299 r2 +0.670  1.4s
+epoch  33  train 0.00502 | val mse 0.00493 | lat mae 0.0486 r2 +0.674 | via mae 0.0295 r2 +0.671  0.9s
+epoch  34  train 0.00504 | val mse 0.00495 | lat mae 0.0488 r2 +0.673 | via mae 0.0298 r2 +0.670  1.0s
+epoch  35  train 0.00502 | val mse 0.00496 | lat mae 0.0485 r2 +0.671 | via mae 0.0299 r2 +0.671  1.1s
+epoch  36  train 0.00501 | val mse 0.00494 | lat mae 0.0485 r2 +0.674 | via mae 0.0297 r2 +0.671  1.1s
+epoch  37  train 0.00502 | val mse 0.00490 | lat mae 0.0493 r2 +0.677 | via mae 0.0293 r2 +0.674  1.1s  * best
+epoch  38  train 0.00500 | val mse 0.00495 | lat mae 0.0487 r2 +0.672 | via mae 0.0293 r2 +0.674  1.1s
+epoch  39  train 0.00500 | val mse 0.00490 | lat mae 0.0489 r2 +0.676 | via mae 0.0292 r2 +0.675  0.9s
+epoch  40  train 0.00500 | val mse 0.00494 | lat mae 0.0489 r2 +0.673 | via mae 0.0294 r2 +0.673  0.9s
+epoch  41  train 0.00499 | val mse 0.00491 | lat mae 0.0489 r2 +0.675 | via mae 0.0293 r2 +0.674  0.9s
+epoch  42  train 0.00498 | val mse 0.00489 | lat mae 0.0488 r2 +0.676 | via mae 0.0292 r2 +0.675  1.0s  * best
+epoch  43  train 0.00498 | val mse 0.00489 | lat mae 0.0489 r2 +0.676 | via mae 0.0291 r2 +0.675  1.0s
+epoch  44  train 0.00498 | val mse 0.00488 | lat mae 0.0489 r2 +0.677 | via mae 0.0290 r2 +0.676  0.9s  * best
+epoch  45  train 0.00498 | val mse 0.00489 | lat mae 0.0485 r2 +0.677 | via mae 0.0290 r2 +0.676  0.9s
+epoch  46  train 0.00497 | val mse 0.00491 | lat mae 0.0485 r2 +0.675 | via mae 0.0291 r2 +0.675  0.9s
+epoch  47  train 0.00498 | val mse 0.00488 | lat mae 0.0488 r2 +0.677 | via mae 0.0289 r2 +0.676  0.9s  * best
+epoch  48  train 0.00497 | val mse 0.00488 | lat mae 0.0490 r2 +0.677 | via mae 0.0290 r2 +0.676  0.9s
+epoch  49  train 0.00498 | val mse 0.00489 | lat mae 0.0484 r2 +0.677 | via mae 0.0288 r2 +0.677  0.9s
+epoch  50  train 0.00498 | val mse 0.00488 | lat mae 0.0487 r2 +0.677 | via mae 0.0288 r2 +0.677  0.9s
+epoch  51  train 0.00496 | val mse 0.00488 | lat mae 0.0486 r2 +0.677 | via mae 0.0289 r2 +0.677  0.9s
+epoch  52  train 0.00497 | val mse 0.00487 | lat mae 0.0487 r2 +0.678 | via mae 0.0289 r2 +0.677  0.9s  * best
+epoch  53  train 0.00497 | val mse 0.00488 | lat mae 0.0486 r2 +0.677 | via mae 0.0289 r2 +0.677  0.9s
+epoch  54  train 0.00496 | val mse 0.00487 | lat mae 0.0487 r2 +0.678 | via mae 0.0288 r2 +0.677  1.0s  * best
+epoch  55  train 0.00496 | val mse 0.00487 | lat mae 0.0485 r2 +0.678 | via mae 0.0288 r2 +0.677  1.1s
+epoch  56  train 0.00495 | val mse 0.00487 | lat mae 0.0486 r2 +0.678 | via mae 0.0288 r2 +0.677  1.0s  * best
+epoch  57  train 0.00495 | val mse 0.00487 | lat mae 0.0486 r2 +0.678 | via mae 0.0288 r2 +0.677  1.0s
+epoch  58  train 0.00496 | val mse 0.00487 | lat mae 0.0486 r2 +0.678 | via mae 0.0288 r2 +0.677  1.0s
+epoch  59  train 0.00497 | val mse 0.00487 | lat mae 0.0486 r2 +0.678 | via mae 0.0288 r2 +0.677  0.9s
+epoch  60  train 0.00496 | val mse 0.00487 | lat mae 0.0486 r2 +0.678 | via mae 0.0288 r2 +0.677  0.9s
+[train] done in 1.2 min; best val mse 0.00487
+[train] checkpoint: D:\Partcl-Competition\gnn\checkpoints\v1_mlp\best.pt
+[train] log:        D:\Partcl-Competition\gnn\runs\v1_mlp\metrics.csv

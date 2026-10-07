@@ -1,0 +1,54 @@
+[route] 9 cases x 5 alphas on benchmarks_hard, 4 workers
+  alpha 0.0  case_01: iters  11  delay 11938  vs baseline 1.0000  15.5s
+  alpha 0.0  case_02: iters  11  delay 18910  vs baseline 1.0000  25.1s
+  alpha 0.0  case_03: iters  14  delay 14724  vs baseline 1.0000  31.6s
+  alpha 0.0  case_04: iters  39  delay 18077  vs baseline 1.0000  36.8s
+  alpha 0.0  case_05: iters  12  delay 21051  vs baseline 1.0000  40.5s
+  alpha 0.0  case_06: iters  11  delay 27134  vs baseline 1.0000  52.2s
+  alpha 0.5  case_01: iters  11  delay 12152  vs baseline 0.9824  15.9s
+  alpha 0.0  case_07: iters  12  delay 31341  vs baseline 1.0000  77.8s
+  alpha 0.5  case_02: iters  50  delay None  vs baseline ILLEGAL  25.6s
+  alpha 0.0  case_08: iters  14  delay 30886  vs baseline 1.0000  87.2s
+  alpha 0.5  case_03: iters  12  delay 15326  vs baseline 0.9607  27.3s
+  alpha 0.0  case_09: iters  11  delay 27802  vs baseline 1.0000  86.6s
+  alpha 0.5  case_04: iters  50  delay None  vs baseline ILLEGAL  46.5s
+  alpha 0.5  case_05: iters  12  delay 20615  vs baseline 1.0211  45.0s
+  alpha 0.5  case_06: iters  50  delay None  vs baseline ILLEGAL  55.9s
+  alpha 1.0  case_01: iters  11  delay 11476  vs baseline 1.0403  15.9s
+  alpha 0.5  case_07: iters  13  delay 31747  vs baseline 0.9872  72.8s
+  alpha 1.0  case_02: iters  13  delay 18518  vs baseline 1.0212  23.2s
+  alpha 1.0  case_03: iters  12  delay 14854  vs baseline 0.9912  29.1s
+  alpha 0.5  case_09: iters  10  delay 27254  vs baseline 1.0201  76.0s
+  alpha 0.5  case_08: iters  50  delay None  vs baseline ILLEGAL  96.9s
+  alpha 1.0  case_04: iters  50  delay None  vs baseline ILLEGAL  44.7s
+  alpha 1.0  case_05: iters  13  delay 20127  vs baseline 1.0459  40.3s
+  alpha 1.0  case_06: iters  14  delay 26168  vs baseline 1.0369  53.6s
+  alpha 2.0  case_01: iters  10  delay 12028  vs baseline 0.9925  16.4s
+  alpha 1.0  case_07: iters  13  delay 32443  vs baseline 0.9660  73.0s
+  alpha 2.0  case_02: iters  12  delay 18650  vs baseline 1.0139  24.9s
+  alpha 1.0  case_08: iters  12  delay 31014  vs baseline 0.9959  86.0s
+  alpha 2.0  case_03: iters  12  delay 14994  vs baseline 0.9820  28.7s
+  alpha 1.0  case_09: iters  11  delay 27228  vs baseline 1.0211  82.0s
+  alpha 2.0  case_04: iters  12  delay 18669  vs baseline 0.9683  37.1s
+  alpha 2.0  case_05: iters  50  delay None  vs baseline ILLEGAL  46.3s
+  alpha 2.0  case_06: iters  13  delay 27536  vs baseline 0.9854  58.8s
+  alpha 2.0  case_07: iters  13  delay 31721  vs baseline 0.9880  68.1s
+  alpha 4.0  case_01: iters  12  delay 12252  vs baseline 0.9744  16.1s
+  alpha 4.0  case_02: iters  50  delay None  vs baseline ILLEGAL  25.1s
+  alpha 2.0  case_08: iters  50  delay None  vs baseline ILLEGAL  83.5s
+  alpha 4.0  case_03: iters  12  delay 14534  vs baseline 1.0131  28.5s
+  alpha 2.0  case_09: iters  10  delay 26922  vs baseline 1.0327  78.7s
+  alpha 4.0  case_04: iters  20  delay 16971  vs baseline 1.0652  36.4s
+  alpha 4.0  case_05: iters  12  delay 19929  vs baseline 1.0563  41.3s
+  alpha 4.0  case_06: iters  13  delay 28132  vs baseline 0.9645  58.2s
+  alpha 4.0  case_07: iters  14  delay 30515  vs baseline 1.0271  72.2s
+  alpha 4.0  case_08: iters  13  delay 31360  vs baseline 0.9849  79.8s
+  alpha 4.0  case_09: iters  11  delay 26920  vs baseline 1.0328  80.0s
+
+ alpha | legal | aggregate | agg (legal only) | iters | seconds
+   0.0 |  9/9  |    1.0000 |           1.0000 |   135 |   453.2
+   0.5 |  5/9  |    0.0000 |           0.9940 |   258 |   462.1
+   1.0 |  8/9  |    0.0000 |           1.0145 |   149 |   447.9
+   2.0 |  7/9  |    0.0000 |           0.9945 |   182 |   442.6
+   4.0 |  8/9  |    0.0000 |           1.0142 |   157 |   437.6
+(aggregate = geometric mean of baseline/your delay, like the leaderboard: 0 if any case is illegal; alpha 0 should be exactly 1.0000)

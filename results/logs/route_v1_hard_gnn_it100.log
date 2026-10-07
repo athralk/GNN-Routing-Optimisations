@@ -1,0 +1,24 @@
+[route] 9 cases x 2 alphas on benchmarks_hard, control=none, decay=1.0, max_iters=100, 4 workers
+  alpha 1.0  case_01: iters  11  delay 11476  vs baseline 1.0403  21.5s
+  alpha 1.0  case_02: iters  13  delay 18526  vs baseline 1.0207  33.8s
+  alpha 1.0  case_03: iters 100  delay None  vs baseline ILLEGAL  35.2s
+  alpha 1.0  case_04: iters  63  delay 17307  vs baseline 1.0445  59.5s
+  alpha 1.0  case_05: iters  28  delay 20289  vs baseline 1.0376  50.1s
+  alpha 1.0  case_06: iters  13  delay 26946  vs baseline 1.0070  71.0s
+  alpha 4.0  case_01: iters  12  delay 12274  vs baseline 0.9726  17.3s
+  alpha 1.0  case_07: iters 100  delay None  vs baseline ILLEGAL  88.7s
+  alpha 4.0  case_02: iters 100  delay None  vs baseline ILLEGAL  24.6s
+  alpha 1.0  case_08: iters  11  delay 31424  vs baseline 0.9829  93.0s
+  alpha 4.0  case_03: iters  13  delay 15254  vs baseline 0.9653  29.0s
+  alpha 1.0  case_09: iters  11  delay 27248  vs baseline 1.0203  85.0s
+  alpha 4.0  case_05: iters  22  delay 19957  vs baseline 1.0548  39.0s
+  alpha 4.0  case_04: iters 100  delay None  vs baseline ILLEGAL  48.8s
+  alpha 4.0  case_06: iters  13  delay 28132  vs baseline 0.9645  56.0s
+  alpha 4.0  case_07: iters  12  delay 30645  vs baseline 1.0227  66.8s
+  alpha 4.0  case_08: iters  24  delay 30204  vs baseline 1.0226  80.7s
+  alpha 4.0  case_09: iters  11  delay 26854  vs baseline 1.0353  85.1s
+
+ alpha | legal | aggregate | agg (legal only) | iters | seconds
+   1.0 |  7/9  |    0.0000 |           1.0217 |   350 |   537.7
+   4.0 |  7/9  |    0.0000 |           1.0048 |   307 |   447.3
+(aggregate = geometric mean of baseline/your delay, like the leaderboard: 0 if any case is illegal; alpha 0 should be exactly 1.0000)

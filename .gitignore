@@ -1,0 +1,11 @@
+# generated data, tensors, local checkpoints and logs: large and reproducible
+gnn/data/
+gnn/checkpoints/
+gnn/runs/
+*.tmp
+__pycache__/
+*.pyc
+
+# the shipped trained models in models/ ARE committed (small, needed to reproduce)
+*.pt
+!models/*.pt
