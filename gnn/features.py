@@ -68,9 +68,21 @@ FEATURE_VERSION = 2
 EDGE_DIST_CAP = 4   # tiles; "4+ tiles from the border" all look the same (= interior)
 
 
+DATASET = ""   # "" = reference-router labels (raw/); "engine" = fast-engine labels (raw_engine/)
+
+
+def set_dataset(name: str) -> None:
+    """Switch every path in this module to another labelled dataset."""
+    global DATASET, RAW_ROOT
+    DATASET = name or ""
+    RAW_ROOT = os.path.join(_ROOT, "gnn", "data", f"raw_{name}" if name else "raw")
+
+
 def proc_dir(tile: int, split: str, version: int = FEATURE_VERSION) -> str:
     # v1 data predates versioning and lives in processed/tile<T>/
     name = f"tile{tile}" if version == 1 else f"v{version}_tile{tile}"
+    if DATASET:
+        name = f"{DATASET}_{name}"
     return os.path.join(PROC_ROOT, name, split)
 
 # net-length buckets for the RUDY split, in grid steps (absolute on purpose:
@@ -356,6 +368,7 @@ def main(argv=None) -> None:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--split", default="train")
     ap.add_argument("--tile", type=int, default=DEFAULT_TILE)
+    ap.add_argument("--dataset", default="", help="'engine' = use gnn/data/raw_engine")
     ap.add_argument("--workers", type=int, default=max(1, (os.cpu_count() or 2) - 1))
     ap.add_argument("--viz", metavar="SPLIT/SAMPLE",
                     help="plot features vs targets for one sample, e.g. train/sample_000004")
@@ -365,6 +378,7 @@ def main(argv=None) -> None:
                            args.viz.replace("/", "_") + f"_tile{args.tile}.png")
         visualize(args.viz, args.tile, out)
         return
+    set_dataset(args.dataset)
     process_split(args.split, args.tile, args.workers)
 
 

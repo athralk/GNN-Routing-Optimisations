@@ -1,0 +1,16 @@
+=== 01:47 start (LNS=10800s per case)
+=== 02:14 LNS seed policy: destroy GNN v2 (AUC 0.583 vs regret 0.522)
+=== 05:15 long runs done
+  case_01: 1.2837  from hard_lns3h
+  case_02: 1.3725  from hard_lns3h
+  case_03: 1.263  from hard_lns3h
+  case_04: 1.2798  from hard_lns3h
+  case_05: 1.2725  from hard_lns3h
+  case_06: 1.302  from hard_lns3h
+  case_07: 1.3852  from hard_lns3h
+  case_08: 1.3255  from hard_lns3h
+  case_09: 1.2338  from hard_lns3h
+  ctrl: 1.3723  from designs_lns3h
+  int2float: 1.5428  from designs_lns3h
+  router: 1.1327  from designs_lns3h
+=== 05:16 done -> results/MORNING_SUMMARY.md

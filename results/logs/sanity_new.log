@@ -1,0 +1,5 @@
+[engine] 3 cases from benchmarks_hard, prior=no
+  case_01: ratio 1.2078  (after negotiation 1.0496)  iters 10  refined 27 nets  lns 3392 moves (134 improving), ideal ratio 1.6683  136.8s
+  case_09: ratio 1.1280  (after negotiation 1.0293)  iters 9  refined 47 nets  lns 1037 moves (71 improving), ideal ratio 1.5974  137.7s
+  case_05: ratio 1.1816  (after negotiation 1.0303)  iters 12  refined 55 nets  lns 1726 moves (94 improving), ideal ratio 1.7356  138.9s
+[engine] legal 3/3  aggregate 1.1720  (legal-only 1.1720)  total 413.4s

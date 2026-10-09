@@ -1,470 +1,386 @@
 # GNN Routing Optimisation
 
-**Teaching a graph neural network where wires will go, then using it to guide a real router.**
-A learning project built on the [Partcl M3D Routing Challenge](https://github.com/partcleda/eda-3d-routing-challenge):
-route signal wires through a two-die, monolithic-3D chip stack with the lowest total signal delay.
+**A fast exact router, guided by graph neural networks, for the
+[Partcl M3D Routing Challenge](https://github.com/partcleda/eda-3d-routing-challenge).**
+The task: route signal wires through a two-die, monolithic-3D chip stack with the lowest total
+signal delay.
 
-| Result (official challenge scorer) | Score | vs baseline | All cases legal |
-|---|---:|---:|:---:|
-| **hard** tier (9 cases) | **1.0180** | **+1.8 %** | 9 / 9 |
-| **intro** tier (20 cases) | **1.0145** | **+1.5 %** | 20 / 20 |
+## Results (official challenge scorer, every case legal)
 
-A score above 1.0 beats the challenge's reference router. The same model, trained only on random
-grids up to 40×40 (plus 70 larger ones), makes useful predictions on grids up to **530×530** and on
-**real circuits** it has never seen.
+| Tier | Score | vs baseline | Approx. leaderboard position (Oct 2026) | Files |
+|---|---:|---:|---|---|
+| **hard** (9 cases) | **1.3011** | **+30 %** | ~9th of 19 (top: 1.4136) | `results/hard_final/` |
+| **designs** (3 real circuits) | **1.3385** | **+34 %** | ~7th of 12 (top: 1.4673) | `results/designs_final/` |
+| intro (20 cases), early version | 1.0145 | +1.5 % | (first approach only) | `results/intro/` |
+
+A score is the geometric mean of `baseline_delay / our_delay` over a tier's cases, so 1.0 equals
+the challenge's reference router and higher is better.
+
+**How we got here** (hard tier):
+
+```
+1.018  GNN congestion prior + the challenge's stock router           (day 1)
+1.063  our own fast exact router (Numba), no search
+1.190  + 60 s large neighbourhood search (LNS) per case
+1.244  + 20 min LNS per case
+1.255  best per case over three 20-min runs (two of them GNN-assisted)
+1.301  LNS v2 (annealing + negotiated "stall kicks") + destroy GNN v2, 3 h per case
+```
 
 ---
 
 ## Contents
 
 1. [The competition in plain terms](#1-the-competition-in-plain-terms)
-2. [Why a GNN? (and why not a GNN alone)](#2-why-a-gnn-and-why-not-a-gnn-alone)
-3. [The pipeline at a glance](#3-the-pipeline-at-a-glance)
-4. [Step 1: Generate training data](#step-1--generate-training-data-gnndatagenpy)
-5. [Step 2: Turn each chip into a graph](#step-2--turn-each-chip-into-a-graph-gnnfeaturespy)
-6. [Step 3: The model](#step-3--the-model-gnnmodelpy)
-7. [Step 4: Training](#step-4--training-gnntrainpy)
-8. [Step 5: Does it generalize?](#step-5--does-it-generalize-gnnevaluatepy-gnnpredictpy)
-9. [Step 6: Route with the GNN](#step-6--route-with-the-gnn-gnnroutepy)
-10. [Step 7: Results](#step-7--results)
-11. [Repository layout](#repository-layout)
-12. [Setup and reproducing everything](#setup-and-reproducing-everything)
-13. [Submitting to the challenge leaderboard](#submitting-to-the-challenge-leaderboard)
-14. [What I learned and what's still weak](#what-i-learned-and-whats-still-weak)
-15. [Next steps](#next-steps)
-16. [References](#references)
+2. [The big picture: what the GNNs do and what the router does](#2-the-big-picture)
+3. [Glossary](#3-glossary)
+4. [Part A: the congestion GNN (first approach)](#part-a--the-congestion-gnn-first-approach)
+5. [Part B: the fast exact router (`engine/`)](#part-b--the-fast-exact-router-engine)
+6. [Part C: LNS, where most of the score comes from](#part-c--lns-where-most-of-the-score-comes-from)
+7. [Part D: the destroy GNN, which picks what LNS rips up](#part-d--the-destroy-gnn-which-picks-what-lns-rips-up)
+8. [Part E: GPU Lagrangian router (experimental, unfinished)](#part-e--gpu-lagrangian-router-experimental-unfinished)
+9. [Every experiment and its result](#every-experiment-and-its-result)
+10. [Repository layout: every file and what it does](#repository-layout-every-file-and-what-it-does)
+11. [Setup and reproducing everything](#setup-and-reproducing-everything)
+12. [Submitting to the leaderboard](#submitting-to-the-leaderboard)
+13. [Lessons learned](#lessons-learned)
+14. [Next steps](#next-steps)
+15. [References](#references)
 
 ---
 
 ## 1. The competition in plain terms
 
-**The chip.** Two flat layers of circuitry, the **dies**, are stacked face to face. Between them are
-6 thin **routing layers**: floors where wires can run. This is **monolithic 3D (M3D)**
-integration: building a chip as stacked tiers instead of one flat sheet.
+**The chip.** Two flat layers of circuitry, the **dies**, are stacked face to face. Between them
+are several thin **routing layers** (usually 6), the floors where wires run. This is
+**monolithic 3D (M3D)** integration.
 
-**The task.** Small logic blocks (**cells**) have connection points (**pins**). Pins are grouped into
-**nets**: each net has one **driver** (the pin that sends a signal) and one or more **sinks** (pins
-that receive it). For every net you must draw a wire **tree** (connected, no loops) from the
-driver to all its sinks.
+**The task.** Small logic blocks (**cells**) have connection points (**pins**). Pins are grouped
+into **nets**: one **driver** (sends the signal) and one or more **sinks** (receive it). Every net
+needs a wire **tree** (connected, no loops) from its driver to all its sinks.
 
-**The grid.** Space is a 3D grid of points `(x, y, z)`. A wire can step one square north, south,
-east or west on the same floor, or hop one floor up or down at the same spot (a **via**).
-Bottom-die pins sit on floor `z=0` and top-die pins on the top floor.
+**The grid.** Space is a 3D grid of points `(x, y, z)`. A wire steps one square north/south/east/
+west on a floor, or hops one floor up or down at the same spot (a **via**). Bottom-die pins sit
+on floor 0, top-die pins on the top floor.
 
-**The rules (legality).** No grid point or edge may be used by two different nets (that would be a
-**short**), and a wire may not pass through another net's pin. If a single net in a single case is
-illegal, the whole tier scores 0.
+**Legality (all or nothing).** No grid point or edge may be used by two nets (a **short**), and
+no wire may pass through another net's pin. One illegal net in one case zeroes the whole tier.
 
-**The goal (delay).** Each floor has a cost per step. The middle floors are **fast** and the floors
-next to the dies are **slow**; each via also costs something. For example:
+**The objective (delay).** Each floor has a cost per step. The middle floors are **fast** and the
+floors next to the dies are **slow**; vias cost extra. For example:
 
 ```
 floor (z):   0    1    2    3    4    5        via = 3
 step cost:   6    4    2    2    4    6
 ```
 
-**Total delay** = for every sink of every net, add up the cost of its path from the driver. Minimize
-that. Long wires want to dive to the fast middle floors, so the middle floors get crowded
-(**congestion**), and that is what makes the problem hard.
+**Total delay** = for every sink of every net, the cost of its path from the driver. Long wires
+want the fast middle floors, so those floors get crowded (**congestion**). Balancing "each net
+wants the fast floors" against "nets can't share space" is the whole problem.
 
-**Scoring.** Per case: `baseline_delay / your_delay` (above 1 = you beat the reference router).
-Per tier: the **geometric mean** of those ratios (the N-th root of their product, so big cases
-don't dominate).
+**Tiers.** intro (16–92, easy), **hard** (24–40, crowded), congested (64–116), **designs**
+(77–105, real circuits), scale (100–156), stress (530). The baseline for hard, congested and
+designs is the challenge's negotiated-congestion router; for intro and scale it's a simpler
+router.
 
-**Tiers.**
+---
 
-| Tier | Grid side | Nets | What makes it hard |
-|---|---|---|---|
-| intro | 16 – 92 | 6 – 139 | Warm-up; sparse |
-| hard | 24 – 40 | 62 – 104 | Crowded fast floors; a naive router can't even produce a legal result |
-| congested | 64 – 116 | 166 – 302 | Large *and* crowded |
-| designs | 77 – 105 | 182 – 344 | Built from real open-source circuits |
-| scale | 100 – 156 | 170 – 265 | Large; runtime matters |
-| stress | 530 | 901 | One giant case |
+## 2. The big picture
 
-**The reference routers** (from the challenge repo, which this project imports):
+```
+                        ┌──────────────────────────────── learned (GNNs) ────────────────────────────────┐
+                        │  congestion GNN: "where will wires go?"    destroy GNN: "what should we redo?" │
+                        └───────────────┬───────────────────────────────────────────────┬──────────────┘
+                                        │ starting costs                                 │ which nets to rip up
+                                        ▼                                                 ▼
+ problem ──► negotiation (legal) ──► exact refinement ──► LNS: rip up a few nets, reroute, keep if better ──► submission
+             (PathFinder)            (per-net optimal)     (millions of moves, hours)                           │
+                                                                                                             ▼
+                                                                                         official checker + scorer
+```
 
-* **baseline router**: routes nets one by one, growing each net's tree with **Dijkstra** (the
-  classic shortest-path algorithm); when a net is blocked it **rips up** the nets in the way and
-  **reroutes** them.
-* **negotiated-congestion router** ("**PathFinder**"): routes *all* nets while allowing overlaps,
-  then makes overused spots more expensive (a "present" cost for being crowded now, a "history"
-  cost for having been crowded before) and reroutes, until nothing overlaps. This is the baseline
-  for the hard and congested tiers.
+* **The router guarantees correctness.** Every output is legal by construction, and is re-checked
+  with the challenge's own checker. A neural network can't promise "zero shorts", so it never
+  draws wires directly.
+* **The GNNs make the search smarter.** They predict where congestion will be, and which nets are
+  worth reworking.
+* **Most of the score comes from search (LNS).** Without the GNN, the same LNS scores lower; see
+  [the experiments](#every-experiment-and-its-result).
 
-### Glossary
+---
+
+## 3. Glossary
 
 | Term | Meaning |
 |---|---|
-| GNN | Graph Neural Network: a neural net that works on graphs by passing messages between connected nodes |
-| Message passing | Each node collects information from its neighbours and updates itself; k layers = each node "hears" k hops away |
-| GATv2 | A GNN layer where a node weighs its neighbours' messages with learned **attention** |
-| Tile / GCell | A square patch of the grid (here 4×4 points) treated as one graph node |
-| RUDY | *Rectangular Uniform wire DensitY*: a classic quick congestion estimate; spread each net's expected wire length evenly over its bounding box and sum over nets |
-| HPWL | Half-perimeter wire length: width + height of a net's bounding box |
-| Bounding box | The smallest rectangle containing all of a net's pins |
-| Prior cost | An extra cost added to grid edges *before* routing, from the GNN's prediction |
-| R² | Prediction quality: 0 = no better than always guessing the average, 1 = perfect |
-| MSE / MAE | Mean squared / mean absolute error |
-| Overfitting | The model memorizes its training examples instead of learning general rules (validation error rises while training error falls) |
-| Ablation | Removing one ingredient to measure what it contributes |
-| Control experiment | Same setup with the "active ingredient" removed, to prove an effect is real |
+| **GNN** | Graph neural network: nodes pass messages to their neighbours; k layers = each node "hears" k hops away |
+| **GATv2** | A GNN layer where each node weighs its neighbours' messages with learned attention |
+| **Dijkstra** | The classic shortest-path algorithm (sequential; what the CPU router uses) |
+| **Bellman-Ford** | Another shortest-path algorithm: repeatedly "take the minimum over neighbours". On a grid this is a stencil and runs well on GPUs. |
+| **SPT** | Shortest-path tree: one Dijkstra from the driver gives every sink its minimum-delay path; together these paths form a tree |
+| **PathFinder / negotiation** | Route all nets allowing overlaps, then make crowded spots more expensive (present + history cost) and reroute, until nothing overlaps |
+| **Refinement** | Rip up one net, reroute it with an exact SPT around everyone else, keep it if better |
+| **LNS** | Large neighbourhood search: rip up a *group* of nets, rebuild them, keep the result if better; repeat millions of times |
+| **Destroy / repair** | The two halves of an LNS move: choose what to rip up (destroy), then rebuild it (repair) |
+| **Regret** | How far a net is from its ideal delay (`current − ideal`); the hand-made rule for picking what to rip up |
+| **Annealing** | Sometimes accepting a slightly worse move early on, to escape local optima |
+| **Ideal ratio** | `baseline / sum of every net's ideal delay with no other nets present`: an optimistic ceiling for a case |
+| **Tile** | A 4×4 patch of the grid; one node per tile per layer in the congestion GNN |
+| **RUDY** | Rectangular Uniform wire DensitY: a classic quick congestion estimate |
+| **R²** | Prediction quality: 0 = no better than guessing the average, 1 = perfect |
+| **AUC** | Ranking quality: 0.5 = random, 1.0 = perfect |
+| **Numba** | Compiles Python loops to machine code (50–100× faster) |
+| **Ablation / control** | Remove one ingredient (or replace it with a no-information version) to prove what it contributes |
 
 ---
 
-## 2. Why a GNN? (and why not a GNN alone)
+## Part A: the congestion GNN (first approach)
 
-**Why a graph?** A routing grid *is* a graph: points connected to their neighbours, with costs on
-the edges. GNNs work directly on that structure and have two properties that matter here:
+**Question it answers:** given only the problem (pins, nets, floor costs), how heavily will a good
+router use each region of each floor?
 
-* **Size-independent.** A GNN layer applies the *same* small function at every node, using only
-  its neighbours. A model trained on 40×40 grids therefore runs unchanged on a 530×530 grid, or on
-  4, 6 or 8 layers. Classical search routers are size-independent too, but they learn nothing
-  between instances.
-* **Learns experience.** A classical router rediscovers the congestion of every new chip from
-  scratch, iteration by iteration. A trained GNN looks at the pins and nets and predicts it
-  immediately, the way an experienced designer glances at a floorplan and says "this corner will
-  be crowded".
+**1. Data (`gnn/datagen.py`).** Random problems from the challenge's own generator, with random
+grid size, **layer count (4/6/8)**, floor and via costs, density, fanout and cross-die share.
+Varying the layers and costs forces the model to learn from delay values rather than memorize
+"layer 2 is fast". Every sample is solved, checked with the official checker, and saved as a JSON
+pair. Two labelling modes:
 
-**Why not let the GNN output the wires directly?** Because legality is all-or-nothing. A neural
-network outputs probabilities; one short on one net zeroes the whole tier. So this project follows
-the pattern used by successful learned routers in research:
-
-```
-the GNN proposes  ──►  a real router decides  ──►  a checker confirms
-(where wires will go)   (exact, always legal)     (official scorer)
-```
-
-The GNN makes the *decisions smarter*; the router guarantees *correctness*.
-
----
-
-## 3. The pipeline at a glance
-
-```
- ┌──────────────┐   ┌──────────────┐   ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
- │ 1. datagen   │──►│ 2. features  │──►│ 3-4. model + │──►│ 5. evaluate  │   │ 6. route     │
- │ random chips │   │ chip → tile  │   │    train     │   │ R² on the    │   │ GNN prior →  │
- │ + router     │   │ graph +      │   │ GATv2 GNN    │   │ official     │   │ PathFinder → │
- │ solutions    │   │ usage labels │   │ predicts use │   │ tiers        │   │ legal routes │
- └──────────────┘   └──────────────┘   └──────────────┘   └──────────────┘   └──────┬───────┘
-                                                                                     ▼
-                                                                         official checker/scorer
-```
-
-| Step | File | What it does | Competition equivalent |
+| Dataset | Labelled by | Samples | Notes |
 |---|---|---|---|
-| 1 | `gnn/datagen.py` | Makes thousands of random problems, each solved by a reference router | `m3d/generator.py` + `m3d/suite.py` (how the official cases were made) |
-| 2 | `gnn/features.py` | Converts a problem into a graph, and a solution into "how busy each region is" | `m3d/model.py` (instance/solution format) |
-| 3 | `gnn/model.py` | The neural network | *(new; no equivalent)* |
-| 4 | `gnn/train.py` | Teaches the network to predict busy-ness from the problem alone | *(new)* |
-| 5 | `gnn/evaluate.py`, `gnn/predict.py` | Measures predictions on the official benchmarks | the official `reference/` solutions are the "answer key" |
-| 6 | `gnn/route.py` | Uses predictions as starting costs inside the negotiated router | `m3d/negotiated.py` (the router we modify) |
-| 7 | official `score-suite` | Legality and score | `m3d/checker.py` + `m3d/scorer.py` |
+| `gnn/data/raw/` | challenge's reference routers | 3,000 small (16–40) + 70 large (48–100) + 200 val | first datasets |
+| `gnn/data/raw_engine/` | **our fast engine** (negotiate + refine + short LNS) | 2,983 small + 400 large (48–120) + 192 val + 40 val_large | **better labels**, same problems (same seeds), much faster to make |
 
----
+**2. Graph (`gnn/features.py`).** One node per 4×4 tile per layer; edges to the 4 sideways
+neighbours and to the tiles above and below. **19 size-agnostic node features**: layer physics
+(normalized cost, fastness rank, via cost, relative height, die layer), pin densities, RUDY split
+by net length, cross-die and fanout, cross-die pin columns, and border distance. **Targets**: the
+fraction of each tile-layer's edges (and vias) that the solution uses.
 
-## Step 1: Generate training data (`gnn/datagen.py`)
+**3. Model (`gnn/model.py`).** 8 GATv2 layers with residual connections, about 836k parameters,
+sigmoid output. `--layers 0` gives the same net with no message passing (an ablation).
 
-**Problem:** there is no ready-made dataset for this task, and the 45 official cases are far too
-few to train on (and should be kept for testing anyway).
+**4. Training (`gnn/train.py`).** Masked MSE, AdamW, dropout 0.1, early stopping. It prints
+"always predict the average" and "linear model" scores first, so the GNN's number means
+something. About 11–42 min on a laptop RTX 4060.
 
-**Solution:** make our own. The challenge ships a deterministic instance generator; we call it with
-thousands of random settings, and label each instance with a verified legal solution from the
-challenge's own routers.
+| Model | Labels | Val lateral R² | Val via R² | Large-grid lateral / via R² |
+|---|---|---:|---:|---|
+| linear, no graph | — | 0.57 | 0.40 | |
+| MLP, no message passing | reference | 0.68 | 0.68 | |
+| v1 (15 features) | reference | 0.73 | 0.69 | |
+| v2 (19 features, +large) | reference | 0.73 | 0.70 | |
+| **v3** (`models/v3_engine.pt`) | **engine** | **0.75** | **0.73** | **0.77 / 0.60** |
 
-For each sample:
+It **generalizes to sizes it never saw**: trained on grids up to 40 (plus some up to 120), it
+still predicts usefully on the 530×530 stress case and on real circuits (`gnn/evaluate.py`).
 
-1. **Pick a profile**: `sparse` (30%, intro-like), `medium` (30%), or `dense` (40%, hard-like).
-2. **Randomize everything else**: grid side 16–40, **number of layers 4/6/8** (20/60/20%), floor and
-   via costs (`center_delay ∈ {1,2}`, `slope ∈ {1,2}`, `via ∈ {2..5}`), nets per unit side, fanout
-   (sinks per net), cross-die share, locality. Density is scaled by `layers/6`, because fewer layers
-   means less room (without this, dense 4-layer cases needed up to 13 retries).
-3. **Generate and solve** with `m3d.generator.generate_feasible`, using the simple router for
-   sparse and the negotiated router for medium/dense.
-4. **Re-check** the solution with the official checker before saving it, so we never train on an
-   illegal label.
-5. **Save the raw JSON pair** (`sample_XXXXXX.inst.json` + `.sol.json`) and one line of metadata in
-   `index.jsonl`.
+**5. Use in routing (`gnn/route.py`, `engine/fast.py`).** The prediction becomes an extra
+starting cost, `alpha × predicted_usage²`, which fades as negotiation proceeds.
 
-Why vary layers and delays? So the model **can't memorize "layer 2 is fast"** and has to learn from
-the delay values themselves. That's what lets it work on any stack.
-
-**Details that matter:**
-* **Reproducible:** every sample's seed comes from `(split, index)`, so the same command makes the
-  same dataset on any machine. Train / val / val_large / test use separate seed ranges, all
-  different from the official benchmarks' seed (no leakage).
-* **Resumable and crash-safe:** files are written to a temp name and then renamed; re-running skips
-  finished samples.
-* **CPU only:** the routers are pure Python, so this step doesn't use the GPU at all. Big dense grids
-  are slow (a 93×93 dense case took 18 minutes).
-
-**What was generated:**
-
-| Split | Samples | Grid sides | Notes |
-|---|---:|---|---|
-| train | 3,000 | 16 – 40 | 898 sparse, 905 medium, 1,197 dense; 616/1,790/594 with 4/6/8 layers; ~47 min on 15 cores |
-| train (large) | 70 | 48 – 100 | stopped early (the full 300 would have taken ~2 h) |
-| val | 200 | 16 – 40 | used to pick the best checkpoint |
-
----
-
-## Step 2: Turn each chip into a graph (`gnn/features.py`)
-
-**The task we teach first ("Version 1: congestion prediction"):** given only the problem (pins,
-nets, floor costs), predict **how heavily a good router will use each region of each floor**.
-
-**Graph construction.**
-* **Nodes:** the grid is cut into **4×4 tiles**; one node per tile per layer. A 40×40×6 chip becomes
-  10×10×6 = 600 nodes. (Coarser than the real grid on purpose: small graphs, fast training, and
-  congestion is a regional property.)
-* **Edges:** each node connects to its 4 neighbours on the same layer and to the tiles directly
-  above and below. Each edge carries `[is_via, step_cost / max_step_cost]`.
-
-**Node features (19), none of which depend on absolute grid size or layer index:**
-
-| # | Feature | Meaning | Why it helps |
-|---|---|---|---|
-| 0 | `layer_delay_norm` | this floor's step cost ÷ slowest floor's | fast floors attract wire |
-| 1 | `layer_fastness` | 1 = fastest floor of this stack, 0 = slowest | same, as a rank |
-| 2 | `via_norm` | via cost ÷ slowest step cost | expensive vias = fewer floor changes |
-| 3 | `rel_z` | 0 = bottom die floor, 1 = top die floor | position in the stack, for any layer count |
-| 4 | `is_die_layer` | floor touches a die | pins live there |
-| 5 | `area_frac` | how much of the tile is inside the grid | edge tiles can be partial |
-| 6–8 | `pin_density_here/bottom/top` | pins per point on this tile, and on the dies below/above | wires start and end at pins |
-| 9 | `rudy_all` | RUDY congestion estimate (log scale) | classic "how much wire passes here" guess |
-| 10–12 | `rudy_short/medium/long` | RUDY split by net length (≤4, ≤12, >12 steps) | long nets dive to fast floors; short ones don't |
-| 13 | `rudy_cross_die` | RUDY of nets connecting both dies | they must cross every floor |
-| 14 | `rudy_fanout` | RUDY weighted by number of sinks | the score counts every sink |
-| 15 | `cross_pin_here` | pins of die-crossing nets on this tile | *(v2)* where via stacks start |
-| 16 | `cross_pin_column` | same, summed over the whole column | *(v2)* via stacks run through all floors |
-| 17 | `cross_sink_column` | same, weighted by sinks | *(v2)* |
-| 18 | `edge_dist` | tiles to the nearest border, capped at 4 | *(v2)* separates border from interior on any size |
-
-Features 0–14 are **v1**; 15–18 were added in **v2**. Features are append-only, so v1 models still
-work: they just read the first 15 columns.
-
-**Targets (what the model must predict), from the router's solution:**
-* `lateral_usage`: the fraction of the tile-layer's grid edges that the solution uses
-* `via_usage`: the fraction of possible vias from this floor to the next that are used
-  (undefined on the top floor, so it's masked out of the loss)
-
-**Sanity check:** converting the targets back to edge counts recovers *every* edge of the solution
-(571 of 571 in the test sample).
+**Findings:**
+* On the *stock* router it helped: +1.8% on hard (1.0180).
+* A **control experiment** with the same predictions shuffled across positions scored −1.2%, so
+  the GNN's spatial information is real, not just a lucky perturbation.
+* Inside our much stronger engine with long LNS, the prior **ties** (1.2423 vs 1.2437). LNS
+  erases the head start. It still won 3 of the 9 cases in the best-per-case combination.
 
 ![features vs targets](docs/figures/features_vs_target.png)
+*Input RUDY (top) is the same on every floor; the real routing (middle) uses the fast floors
+z=2,3. Learning that difference is the GNN's job.*
 
-*Top row: the RUDY input is identical on every floor (it's 2D). Middle row: the router actually put
-nearly all wire on the fast floors z=2 and z=3. That gap is exactly what the GNN must learn: how
-wire distributes across floors by speed, and sideways around crowded areas.*
-
----
-
-## Step 3: The model (`gnn/model.py`)
-
-```
-19 features ─► MLP encoder ─► [ GATv2 attention + feed-forward ] × 8 ─► MLP head ─► sigmoid ─► 2 usages
-```
-
-* **GATv2Conv** (attention message passing): each tile-layer updates itself from a learned,
-  attention-weighted mix of its neighbours. The edge features let it treat "sideways on a slow
-  floor" differently from "via up".
-* **Pre-norm residual blocks** (`h = h + layer(norm(h))`) keep an 8-layer stack trainable.
-* **8 layers** ⇒ each node sees ~8 tiles (~32 grid steps) sideways and the whole height of the stack.
-* **Sigmoid output** because usages are fractions in [0, 1].
-* **835,842 parameters** (v2), which is small.
-* `--layers 0` gives the same network **without message passing** (a per-node MLP). That's the
-  ablation that tests whether looking at neighbours helps.
-
-**Competition equivalent:** none. This replaces the "discover congestion by trial and error" loop of
-PathFinder with a learned prediction made before routing starts.
+![prediction vs truth](docs/figures/prediction_hard_case05.png)
 
 ---
 
-## Step 4: Training (`gnn/train.py`)
+## Part B: the fast exact router (`engine/`)
 
-* **Loss:** masked mean squared error between predicted and true usage.
-* **Inputs are standardized** with training-set mean/std (stored in the checkpoint).
-* **Optimizer:** AdamW, learning rate 1e-3 with warm-up and cosine decay, gradient clipping.
-* **Reference scores printed first**, so the GNN's number means something:
-  * `mean`: always predict the average (R² = 0 by definition)
-  * `linear`: least squares on each node's own features (no graph)
-* **v2 adds** dropout 0.1 and **early stopping** (stop after 15 epochs without improvement), because
-  v1 overfit.
-* The best checkpoint (lowest validation loss) is saved with everything needed to use it: model
-  config, weights, normalization stats, feature list.
+The challenge's routers are pure Python and build each net's tree by attaching every sink to the
+*nearest* point of the tree, which saves wire but not delay. Our engine (`engine/fast.py`, Numba)
+fixes both:
 
-**Hardware:** an RTX 4060 **laptop** GPU is plenty. The entire dataset (~1M nodes, ~60 MB) fits in
-GPU memory; one epoch takes ~11 s; a full run takes ~11 min.
+1. **Exact per-net trees (`_spt`).** One Dijkstra from the driver gives every sink its minimum
+   possible delay, and the predecessor pointers already form a tree. This is optimal for one net
+   given fixed obstacles.
+2. **Negotiation (`negotiate`, `_grow`).** PathFinder-style, like the challenge's router, but
+   compiled. During negotiation, trees are grown with a **blend** `beta` between "attach to the
+   nearest tree point" (compact, converges) and exact SPT. It tries `beta = 0.5, 0.25, 0` until
+   one becomes legal. (Pure SPT trees used too much space, and 3 of 9 hard cases never became
+   legal.)
+3. **Exact refinement (`refine`).** Once legal, each net is ripped up and rerouted with an exact
+   SPT around the others. It can never get worse, and it repeats until nothing improves.
 
-![training curves](docs/figures/training_curves.png)
-
-*v1 (dashed) starts overfitting after ~17 epochs: training loss keeps falling while validation loss
-rises. v2 (solid) with dropout + early stopping trains longer before stopping (best at epoch 33).*
-
-**Validation results (200 held-out random chips):**
-
-| Model | Lateral R² | Via R² |
-|---|---:|---:|
-| always predict the average | 0.00 | 0.00 |
-| linear, no graph | 0.57 | 0.40 |
-| MLP, no message passing (`--layers 0`) | 0.68 | 0.68 |
-| **GNN v1** (8 × GATv2) | 0.73 | 0.69 |
-| **GNN v2** (+ cross-die features, large samples, dropout) | **0.73** | **0.70** |
-
-The GNN beats every non-graph baseline, though the margin over the plain MLP is modest. Part of the
-reason is that RUDY already summarizes each net's bounding box, so each node starts with some
-neighbourhood information.
+**Speed:** about **30× faster** than the reference router (1–3 s vs 15–90 s per hard case).
+**Score without any search:** 1.0626 on hard, all legal.
 
 ---
 
-## Step 5: Does it generalize? (`gnn/evaluate.py`, `gnn/predict.py`)
+## Part C: LNS, where most of the score comes from
 
-The real test: the **official benchmarks**, never used for training and mostly much bigger than the
-training grids. The "truth" is each case's official reference solution.
+**LNS v1 (`FastRouter._move`):** pick a squeezed net (by regret) plus up to 7 overlapping nets,
+rip them up, reroute them one by one with exact SPTs in random order, and keep the result if the
+total delay didn't rise. 60 s → **1.1896**; 20 min → **1.2437**. But after 20 min, only 196 of
+500,000 moves improved anything: **the search was stuck in a local optimum**.
 
-| Tier | Max grid | v1 lateral / via R² | v2 lateral / via R² |
-|---|---:|---|---|
-| hard | 40 | 0.745 / 0.430 | **0.750 / 0.446** |
-| intro | 92 | **0.652** / 0.444 | 0.632 / **0.460** |
-| congested | 116 | 0.589 / 0.308 | **0.717 / 0.338** |
-| designs (real circuits) | 105 | **0.684 / 0.468** | 0.642 / 0.422 |
-| scale | 156 | 0.637 / 0.354 | **0.640 / 0.364** |
-| stress | **530** | 0.535 / 0.167 | **0.546 / 0.179** |
+**LNS v2 (`FastRouter.lns`, `_try_group`, `_negotiate_group`):**
 
-Takeaways:
-* **Size generalization works:** a model trained on grids up to 40 (plus 70 up to 100) still
-  predicts usefully on a 530×530 grid and on real circuits.
-* The 70 large training samples are the likely cause of v2's big jump on `congested` (the only tier
-  that is both large and dense).
-* v2 is worse on `designs`: real circuits are structured differently from the random generator, and
-  v2 may fit the generator more closely.
-* Via prediction is consistently harder than lateral prediction.
+| Ingredient | What it does | Measured effect (case_05, 90 s) |
+|---|---|---|
+| **Annealing** (`anneal=0.1`) | A move may raise delay by up to 0.1 × (mean net delay), shrinking to 0 by the end; the best state is restored at the end | 1.2056 → **1.2109** |
+| **Negotiated group repair** | The ripped group may overlap internally and negotiates (mini-PathFinder) until legal, then gets an exact polish. It finds rearrangements greedy rerouting can't. | 10% of moves improve (vs 1%), but each is ~20× slower |
+| **Stall kicks** (`stall_kick=2.0`) | Use a negotiated move *only* when nothing has improved for 2 s, so the expensive move becomes the escape hatch | the combination that worked |
+| Window moves | Rip up every net in a random region | too slow, **disabled** (`mix=(1,0,0)`) |
 
-![prediction vs truth, hard case 5](docs/figures/prediction_hard_case05.png)
+2-minute check on 3 hard cases: old LNS 1.2039, v2 with fixed move mix 1.1720 (worse),
+**v2 with stall kicks 1.2295**. That last one already beat the old 20-minute results on two of
+the three cases.
 
-*Rows: predicted lateral use, true lateral use, predicted vias, true vias, for each floor. The model
-clearly learned the floor physics (bright fast middle floors, dark slow outer ones). Its predictions
-are **smoother** than the truth: with an MSE loss, an unsure model predicts the average of the
-possibilities, and the router's exact choice among equally good routes is partly arbitrary anyway.*
+**3-hour run (LNS v2 + destroy GNN v2):** about **45,000** improving moves on case_01, against
+196 before. **Hard 1.3011, designs 1.3385**; it won every case.
 
 ---
 
-## Step 6: Route with the GNN (`gnn/route.py`)
+## Part D: the destroy GNN, which picks what LNS rips up
 
-PathFinder normally *discovers* congestion over many iterations. Here the GNN *predicts* it before
-routing starts, and every grid edge gets an extra **prior cost**:
+**Problem:** most LNS moves are wasted. **Idea:** learn which nets are worth ripping up *right now*.
 
-```
-edge_cost = step_delay × (1 + fade × alpha × predicted_usage^gamma  +  history  +  present)
-                              └───────────── GNN prior ─────────────┘  └── PathFinder's own ──┘
-```
+* **Graph:** one node per net; nets with overlapping bounding boxes are connected (they compete
+  for space).
+* **Node features (`FastRouter.NET_FEATURES`):** regret ratio, log regret, fanout, wire length
+  (HPWL), cross-die, number of overlapping nets, local occupancy, detour ratio, ideal delay per
+  sink.
+* **Labels, free from the engine (`snapshot_labels`):** on *generated* problems only (never the
+  benchmarks), take snapshots at increasing LNS depth. At each one, try several rip-ups seeded at
+  *every* net without keeping them, and record how often each net's rip-up improved delay.
+* **Model (`gnn/destroy.py`):** 4 GATv2 layers, hidden size 64. It outputs a logit per net, and
+  LNS samples seed nets in proportion to `softmax(logit)`, mixed with 20% regret sampling for
+  exploration.
 
-* `alpha` = prior strength (default 1); `gamma = 2` focuses the penalty on predicted hot spots.
-* **Fading** (`fade = (pres_fac0 / pres_fac)^decay`): PathFinder's crowding penalty grows 1.7× per
-  iteration, so with `decay = 1` the prior is ~7% of its strength after 5 iterations. The GNN steers
-  the first passes; then the router's real measurements take over. A *constant* prior made the
-  negotiation oscillate and fail to converge.
-* `alpha = 0` is **exactly** the official negotiated router. This is checked: it reproduces the
-  baseline's delay to the unit (score 1.0000).
-* **Portfolio (`--fallback best`):** also run the plain negotiated router and keep the better legal
-  result per case. Runtime counts both runs, so the comparison is honest. This guarantees every case
-  is legal.
+| Version | Labels | Val AUC | Hit-rate of top 10% | vs regret ranking |
+|---|---|---:|---:|---|
+| v1 (`models/destroy_v1.pt`) | 4 tries per net, yes/no | 0.545 | 0.174 | regret: 0.531 / 0.133 |
+| **v2** (`models/destroy_v2.pt`) | **16 tries per net, improvement rate** | **0.583** | **0.326** | regret: 0.522 / 0.265 (random 0.256) |
 
-**Competition equivalent:** `GuidedNegotiated` subclasses the challenge's `m3d.negotiated.Negotiated`;
-the only change is the prior term in the edge cost. Legality still comes from the router, and every
-output is re-verified with `m3d.checker.check`.
-
-### The control experiment: is it the GNN, or just any perturbation?
-
-PathFinder is sensitive to its starting costs, so *any* change could help or hurt by luck. To prove
-the GNN's predictions carry real information, we compared against a **shuffled prior**: the same
-predicted values, randomly scrambled across positions within each floor. Same strength, same
-"middle floors are busy" profile, **no spatial information**.
-
-| Prior (hard tier, v1 model, 100-iteration cap) | Legal | Delay vs baseline (legal cases only) |
-|---|---:|---:|
-| **GNN predictions**, alpha 1 | 7 / 9 | **+2.2 % better** |
-| shuffled predictions, alpha 1 | 7 / 9 | −1.2 % worse |
-| GNN predictions, alpha 4 | 7 / 9 | +0.5 % |
-| shuffled predictions, alpha 4 | 8 / 9 | −0.4 % |
-
-**The GNN's spatial predictions genuinely help**; scrambled ones hurt. Both setups sometimes fail to
-converge, which is why the final submissions use the portfolio fallback.
+v1's labels were too noisy: whether a move helps depends mostly on random neighbour and order
+choices. In a 20-minute run, v1 beat the regret-only run on **7 of 9 cases** but tied overall
+(1.2434 vs 1.2437). v2 clears the bar the overnight script requires (AUC +0.01 over regret) and
+powered the final 3-hour run.
 
 ---
 
-## Step 7: Results
+## Part E: GPU Lagrangian router (experimental, unfinished)
 
-Final run: **v2 model, alpha 1, fading prior, 100-iteration cap, portfolio fallback**. Scored with
-the challenge's official `python -m m3d.cli score-suite`.
+**Idea:** on a regular grid, shortest paths can be computed by **Bellman-Ford as a 3D min-plus
+stencil** (like a convolution with `min` instead of `+`), for *every net at once* on the GPU. Put
+a price on every resource and let all nets reroute simultaneously under those prices, raising
+prices where resources are overused. That's PathFinder in parallel, written as Lagrangian
+relaxation. The GPU entry `drama3d-portfolio` scores 1.4058 on hard, so the approach can work.
 
-**hard** (baseline = negotiated router):
-
-| Case | Baseline delay | Our delay | Ratio | Route used |
-|---|---:|---:|---:|---|
-| case_01 | 11,938 | 11,938 | 1.0000 | plain |
-| case_02 | 18,910 | 18,910 | 1.0000 | plain |
-| case_03 | 14,724 | 14,724 | 1.0000 | plain |
-| case_04 | 18,077 | 17,717 | **1.0203** | GNN |
-| case_05 | 21,051 | 20,235 | **1.0403** | GNN |
-| case_06 | 27,134 | 25,940 | **1.0460** | GNN |
-| case_07 | 31,341 | 30,999 | **1.0110** | GNN |
-| case_08 | 30,886 | 30,020 | **1.0288** | GNN |
-| case_09 | 27,802 | 27,352 | **1.0165** | GNN |
-| **aggregate** | | | **1.0180** | 6 GNN / 3 plain |
-
-**intro** (baseline = simple rip-up router): aggregate **1.0145**, 20/20 legal, GNN route chosen on
-15 of 20 cases. Note that on intro part of the gain may come from using the negotiated router at all
-rather than from the GNN; I didn't run plain negotiated alone on intro to separate the two.
-
-**Runtime** (CPU routing + GPU inference, both routers counted): hard 703 s total, intro 3,503 s total.
-
-**Leaderboard context (October 2026):** the top entries are about 1.41 (hard) and 1.16 (intro), from
-heavy search (rip-up-and-reroute, large neighbourhood search) running for hours. This project beats
-the baseline with a learned prior on top of a stock router. Closing the gap to the top would mean
-using the GNN to guide *that* kind of search (see [Next steps](#next-steps)).
-
-The solution files are in `results/hard/` and `results/intro/` (with `runtime.json`); training and
-routing logs are in `results/logs/`.
+**Status:**
+* ✅ The batched shortest-path kernel (`gpu/bellman.py`) works: all nets of a small test
+  problem in 0.2 s (20 sweeps).
+* ✅ Tree extraction (`gpu/trees.py`) works (about 1 ms).
+* ❌ The price loop (`gpu/lagrange.py`) **slows down sharply as prices grow**, so the tests in
+  `tests/test_gpu.py` don't finish yet. The root cause isn't pinned down; growing sweep counts or
+  a tracing issue are the suspects.
+* Note: a true Lagrangian *lower bound* is not valid here, because the score counts a shared
+  wire once per sink while capacity counts it once per net.
 
 ---
 
-## Repository layout
+## Every experiment and its result
+
+All numbers are on the **hard** tier unless noted, from the official scorer or the identical
+checker inside the runners.
+
+| # | Setup | Score | Folder / log |
+|---|---|---:|---|
+| 1 | Congestion GNN v2 prior + stock router, keep the better of guided/plain per case | 1.0180 | `results/hard`, `results/logs/route_v2_hard_submission.log` |
+| 1b | Same on **intro** | 1.0145 | `results/intro` |
+| 2 | Control: GNN prior vs shuffled prior (v1, legal cases only) | +2.2% vs −1.2% | `results/logs/route_v1_hard_*_it100.log` |
+| 3 | Fast engine, no LNS | 1.0626 | — |
+| 4 | Engine + 60 s LNS | 1.1896 | — |
+| 5 | Engine + 20 min LNS (**control**) | 1.2437 | `results/hard_engine`, `results/logs/overnight.log` |
+| 6 | Engine + congestion GNN v3 prior + 20 min LNS | 1.2423 | `results/hard_engine_gnn` |
+| 7 | Engine + destroy GNN v1 + 20 min LNS | 1.2434 (won 7/9 cases vs #5) | `results/hard_destroy_gnn`, `results/logs/hard_destroy.log` |
+| 8 | Best per case of #5–#7 | 1.2550 | `results/hard_best` |
+| 9 | **designs**: engine + v3 prior + 20 min LNS | 1.2749 | `results/designs_engine_gnn` |
+| 10 | 2-min check: LNS v1 / v2 fixed mix / **v2 stall kicks** (3 cases) | 1.2039 / 1.1720 / **1.2295** | `results/logs/sanity_*.log` |
+| 11 | **LNS v2 + destroy GNN v2, 3 h per case** | **1.3011** | `results/hard_lns3h`, `results/logs/hard_lns3h.log` |
+| 12 | **designs**: same, 3 h | **1.3385** | `results/designs_lns3h`, `results/logs/designs_lns3h.log` |
+| 13 | Best per case over every run (final) | hard **1.3011**, designs **1.3385** | `results/hard_final`, `results/designs_final`, `results/MORNING_SUMMARY.md` |
+
+**Per case (final):**
+
+| hard | 01 | 02 | 03 | 04 | 05 | 06 | 07 | 08 | 09 |
+|---|---|---|---|---|---|---|---|---|---|
+| score | 1.2837 | 1.3725 | 1.2630 | 1.2798 | 1.2725 | 1.3020 | **1.3852** | 1.3255 | 1.2338 |
+| ideal ratio (ceiling) | 1.67 | 1.90 | 1.68 | 1.76 | 1.74 | 1.77 | 1.90 | 1.86 | 1.60 |
+
+| designs | ctrl | int2float | router |
+|---|---|---|---|
+| score | 1.3723 | **1.5428** | 1.1327 |
+| ideal ratio | 1.80 | 2.20 | 1.50 |
+
+`router` is the weak spot: 344 nets, so moves are slow (252k in 3 h versus 435k for int2float).
+
+---
+
+## Repository layout: every file and what it does
 
 ```
 GNN_Routing_Optimisation/
-├── README.md               this file
-├── requirements.txt        torch, torch_geometric, numpy, matplotlib
-├── gnn/
-│   ├── _paths.py           finds the challenge repo (its m3d toolkit + benchmarks)
-│   ├── datagen.py          Step 1: random instances + router labels → raw JSON
-│   ├── features.py         Step 2: instance → tile graph; solution → usage targets
-│   ├── model.py            Step 3: GATv2 congestion GNN
-│   ├── train.py            Step 4: training loop, baselines, checkpoints
-│   ├── evaluate.py         Step 5: R² on the official tiers
-│   ├── predict.py          Step 5: prediction-vs-truth pictures
-│   └── route.py            Step 6: GNN-guided negotiated router + controls + submission writer
+├── README.md                 this file
+├── requirements.txt          torch, torch_geometric, numpy, matplotlib (+ numba)
+├── overnight.ps1             run #1: features → train congestion GNN v3 → 20-min LNS runs → scores
+├── overnight2.sh             run #2: wait for destroy GNN v2 → pick policy → 3-h LNS → best-of → summary
+├── gnn/                      learned parts + data
+│   ├── _paths.py             finds the challenge repo (its m3d toolkit + benchmarks)
+│   ├── datagen.py            random problems + labels (reference routers or --labeler engine)
+│   ├── features.py           problem → tile graph (19 features); solution → usage targets; --dataset engine
+│   ├── model.py              congestion GNN (8 × GATv2)
+│   ├── train.py              training loop, baselines, early stopping, size filters, extra val set
+│   ├── evaluate.py           R² of congestion models on the official tiers
+│   ├── predict.py            prediction-vs-truth pictures for any case
+│   ├── route.py              congestion prior inside the *stock* router (first approach) + shuffle control
+│   └── destroy.py            destroy GNN: data collection, model, training, LNS policy
+├── engine/                   fast exact router (Numba)
+│   ├── fast.py               SPT trees, negotiation, refinement, LNS v1/v2, net features, labels
+│   ├── run.py                route a tier (options: --ckpt prior, --destroy, --lns-seconds, --anneal, --stall-kick)
+│   └── best_of.py            combine runs: best legal route per case, re-verified, runtimes summed
+├── gpu/                      GPU Lagrangian router (experimental, unfinished)
+│   ├── tensors.py            problem → GPU tensors
+│   ├── bellman.py            batched Bellman-Ford min-plus stencil
+│   ├── trees.py              predecessor directions → trees (Numba)
+│   ├── lagrange.py           price-based parallel routing loop
+│   ├── handoff.py            GPU result → CPU engine repair/refine/LNS
+│   └── run.py                command-line runner
+├── tests/test_gpu.py         GPU correctness tests (delays = Dijkstra, valid trees, legal pipeline)
 ├── models/
-│   ├── v1_gat8.pt          15 features, no dropout
-│   └── v2_gat8.pt          19 features, dropout 0.1 (used for the results)
+│   ├── v1_gat8.pt, v2_gat8.pt   congestion GNN on reference labels
+│   ├── v3_engine.pt             congestion GNN on engine labels (best)
+│   ├── destroy_v1.pt            destroy GNN, noisy labels
+│   └── destroy_v2.pt            destroy GNN, clean labels (used for the final results)
 ├── results/
-│   ├── hard/               official-format solutions + runtime.json (score 1.0180)
-│   ├── intro/              official-format solutions + runtime.json (score 1.0145)
-│   └── logs/               training metrics/logs, routing experiment logs
-└── docs/figures/           images used in this README
+│   ├── hard_final/, designs_final/   ⭐ the submissions (solutions + runtime.json)
+│   ├── hard_lns3h/, designs_lns3h/   the 3-hour runs
+│   ├── hard_engine/, hard_engine_gnn/, hard_destroy_gnn/, hard_best/, designs_engine_gnn/   20-min runs
+│   ├── hard/, intro/                 first approach (GNN prior + stock router)
+│   ├── MORNING_SUMMARY.md            overnight run #2 summary
+│   └── logs/                         training metrics and every routing log cited above
+└── docs/figures/             README images
 ```
 
-Generated data (`gnn/data/`), local checkpoints (`gnn/checkpoints/`) and run logs (`gnn/runs/`) are
-git-ignored: they're large and fully reproducible.
+Git-ignored (large, reproducible): `gnn/data/` (all datasets), `gnn/checkpoints/`, `gnn/runs/`,
+`__pycache__/` (including Numba caches). `results/congested_engine_gnn/` is an empty leftover
+from a run that was stopped on purpose.
 
 ---
 
 ## Setup and reproducing everything
 
-**1. Get both repos side by side** (this project imports the challenge's `m3d` toolkit and reads its
-benchmarks; it finds a sibling folder named `Partcl-Competition` or `eda-3d-routing-challenge`, or
-the path in the `M3D_REPO` environment variable):
+**1. Put both repos side by side.** This project imports the challenge's `m3d` toolkit and reads
+its benchmarks. It looks for a sibling folder named `Partcl-Competition` or
+`eda-3d-routing-challenge`, or the path in `M3D_REPO`.
 
 ```
 D:/
@@ -472,103 +388,88 @@ D:/
 └── GNN_Routing_Optimisation/    this repo
 ```
 
-**2. Install** (Python 3.9+; install the CUDA build of PyTorch for your GPU first):
+**2. Install** (Python 3.9+, the CUDA build of PyTorch first):
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt numba
 ```
 
-**3. Run everything from this repo's root.** `python -m gnn.<step>` needs the root as the current
-directory, because Python looks for the `gnn` package there.
+**3. Run from this repo's root.** `python -m gnn.<x>` needs the root as the current directory.
 
 ```bash
-# Step 1: data (CPU; ~47 min for 3,000 small samples on 15 cores)
-python -m gnn.datagen --split train --n 3000
-python -m gnn.datagen --split val --n 200
-python -m gnn.datagen --split train --start 3000 --n 70 --min-side 48 --max-side 100
-python -m gnn.datagen --split train --summary
+# ---- the final pipeline (what produced 1.3011 / 1.3385) ----
+# destroy GNN v2: labels on generated problems (~1 h on 12 cores), then training (~5 min)
+python -m gnn.datagen --split train --n 3000 --labeler engine --lns-seconds 3 --out gnn/data/raw_engine
+python -m gnn.destroy data --n 150 --tries 16 --workers 12 --data-dir gnn/data/destroy_v2
+python -m gnn.destroy train --epochs 60 --data-dir gnn/data/destroy_v2 --out models/destroy_v2.pt
+# 3-hour LNS on hard and designs (or just: bash overnight2.sh)
+python -m engine.run --suite benchmarks_hard    --workers 9 --lns-seconds 10800 --destroy models/destroy_v2.pt --out-dir results/hard_lns3h
+python -m engine.run --suite benchmarks_designs --workers 3 --lns-seconds 10800 --destroy models/destroy_v2.pt --out-dir results/designs_lns3h
+python -m engine.best_of --suite benchmarks_hard --runs results/hard_engine results/hard_lns3h --out results/hard_final
 
-# Step 2: features (~2 min)
-python -m gnn.features --split train
-python -m gnn.features --split val
-python -m gnn.features --viz train/sample_000004
+# ---- quick checks ----
+python -m engine.run --suite benchmarks_hard --workers 9 --lns-seconds 60          # ~1.19 in 1 min
+python -m engine.run --suite benchmarks_hard --anneal 0 --stall-kick 0 ...         # LNS v1 behaviour
 
-# Steps 3-4: train (~11 min on a laptop RTX 4060)
-python -m gnn.train --epochs 60 --run v2_gat8
-python -m gnn.train --epochs 60 --layers 0 --run v2_mlp          # no-graph ablation
-
-# Step 5: generalization to the official tiers
-python -m gnn.evaluate --ckpt models/v1_gat8.pt models/v2_gat8.pt
-python -m gnn.predict --ckpt models/v2_gat8.pt --case benchmarks_hard/case_05.json --sol benchmarks_hard/reference/case_05.sol.json
-
-# Step 6: routing experiments
-python -m gnn.route --ckpt models/v2_gat8.pt --suite benchmarks_hard --alpha 0 1 2 --max-iters 100 --workers 4
-python -m gnn.route --ckpt models/v2_gat8.pt --suite benchmarks_hard --alpha 1 --max-iters 100 --control shuffle
-
-# Step 7: produce a full legal submission and score it officially
-python -m gnn.route --ckpt models/v2_gat8.pt --suite benchmarks_hard --alpha 1 --fallback best --max-iters 100 --workers 8 --out-dir results/hard
+# ---- congestion GNN (Part A) ----
+python -m gnn.features --dataset engine --split train
+python -m gnn.train --dataset engine --epochs 80 --run v3_engine
+python -m gnn.evaluate --ckpt models/v2_gat8.pt models/v3_engine.pt
+python -m gnn.predict --ckpt models/v3_engine.pt --case benchmarks_hard/case_05.json --sol benchmarks_hard/reference/case_05.sol.json
 ```
 
-Then score it, from the challenge repo:
+Score any folder with the official scorer, from the challenge repo:
 
 ```bash
-python -m m3d.cli score-suite --suite benchmarks_hard --submission-dir ../GNN_Routing_Optimisation/results/hard
+python -m m3d.cli score-suite --suite benchmarks_hard --submission-dir ../GNN_Routing_Optimisation/results/hard_final
 ```
 
-To skip training, use the shipped `models/v2_gat8.pt` directly in Steps 5–7.
+**Hardware used:** a laptop with a 16-core CPU and an RTX 4060 (8 GB). Routing is CPU-bound;
+GNN training and inference use the GPU.
 
 ---
 
-## Submitting to the challenge leaderboard
+## Submitting to the leaderboard
 
-The leaderboard is PR-based in the challenge repo. A submission PR may only touch
-`submissions/<tier>/<name>/`, `LEADERBOARD.md` and the README's generated leaderboard block.
-
-1. Copy `results/hard/*` into `submissions/hard/<your-name>/` in your fork of the challenge repo.
+1. In your fork of the challenge repo, copy `results/hard_final/*` to `submissions/hard/<name>/`
+   (and `results/designs_final/*` to `submissions/designs/<name>/`).
 2. Add a `meta.json`, for example:
    ```json
    {"author": "<you>", "url": "https://github.com/<you>/GNN_Routing_Optimisation",
-    "method": "GATv2 congestion GNN as a fading prior inside negotiated-congestion routing (+ plain-router portfolio)",
-    "date": "2026-10-08"}
+    "method": "Numba exact-SPT router: negotiation + exact refinement + annealed LNS with negotiated stall kicks; GATv2 destroy GNN picks what LNS rips up (best of runs)",
+    "date": "2026-10-09"}
    ```
-3. From the challenge repo: `python -m m3d.cli score-suite ...`, then
-   `python -m m3d.cli leaderboard-all`, then `python scripts/verify_submissions.py`.
-4. Commit only those files and open the PR.
+3. Run `python -m m3d.cli leaderboard-all` and `python scripts/verify_submissions.py`.
+4. Commit only `submissions/...`, `LEADERBOARD.md` and the README's generated leaderboard block,
+   then open the PR.
+
+`runtime.json` in the final folders sums **every** run that contributed (honest Pareto reporting).
 
 ---
 
-## What I learned and what's still weak
+## Lessons learned
 
-* **A GNN alone can't route this problem.** Legality is binary, so the GNN must guide an exact
-  router, not replace it.
-* **Size generalization is real but not free.** The model works on grids 13× larger than anything
-  in training, but its advantage over a plain MLP shrinks on big grids, and adding a few large
-  samples helped `congested` a lot.
-* **Controls matter.** Without the shuffled-prior experiment, a +2% gain could have been luck.
-  With it, the GNN's spatial information is shown to help.
-* **Blurry predictions.** The MSE loss averages over the many equally good routings, so
-  predictions are smoother than any real solution.
-* **Labels are only as good as the router that made them.** The GNN imitates the reference
-  routers, not optimal routings.
-* **Convergence is fragile.** Some guided runs don't converge within 100 PathFinder iterations,
-  which is why the portfolio fallback exists.
-* **Confounded v2.** v2 changed features, data and regularization at once, so the individual
-  effects aren't separated yet.
-* **Small final gains** (+1.5–1.8%) compared with top search-based entries (+16–41%).
+1. **A GNN alone can't route this problem.** Legality is all or nothing, so learning has to
+   guide an exact router.
+2. **Search beats starting points.** A better start (the congestion prior) was erased by long LNS.
+   Steering the *search itself* (the destroy GNN) is where learning pays off.
+3. **Label noise kills learning.** Destroy GNN v1 (4 tries per net) was about as good as a coin
+   flip; v2 (16 tries, a rate target) beat the hand-made rule clearly.
+4. **Measure before scaling up.** The first LNS v2 mix was *worse*; a 90-second ablation showed
+   why (negotiated moves are 10× more successful but 20× slower), and "stall kicks" fixed it.
+5. **Always run controls.** Shuffled priors and equal-time comparisons kept us from believing lucky
+   numbers.
+6. **The ceiling is visible.** The ideal ratio (1.6–2.2) shows how far each case could still go.
 
 ## Next steps
 
-1. **Confidence-aware guidance:** predict uncertainty as well as usage (e.g. a Gaussian or quantile
-   head, or an ensemble), apply the prior only where the model is confident, and fall back to plain
-   PathFinder elsewhere.
-2. **Guide the search, not just the start:** use the GNN to choose which nets to rip up in a
-   rip-up-and-reroute or large-neighbourhood-search loop ("learning to destroy").
-3. **Per-net predictions (Version 2 model):** predict, for each net, which grid points its tree
-   should use (an edge heatmap), and decode with A*.
-4. **Better labels:** train on solutions from a stronger router.
-5. **Clean ablations:** separate the effects of the new features, the large samples and dropout.
-6. **Faster data generation:** port the router's inner loop to C++/Rust/Numba to afford many more
-   large samples.
+1. **More seeds, best per case:** 2–3 more 3-hour runs, likely +1–2 points.
+2. **Destroy GNN v3:** collect labels from *late* search states (v2's came from the first ~30 s
+   of LNS), and predict which neighbours to rip up as well as the seed net.
+3. **Designs `router`:** more time; speed up its moves (bounded-region Dijkstra).
+4. **Finish the GPU router:** profile sweeps per call as prices grow; then try GPU-parallel LNS
+   (many disjoint moves at once).
+5. Run the remaining tiers (congested, scale, intro) with the final pipeline.
 
 ---
 
@@ -576,16 +477,16 @@ The leaderboard is PR-based in the challenge repo. A submission PR may only touc
 
 * Partcl, **M3D Routing Challenge**: https://github.com/partcleda/eda-3d-routing-challenge (MIT)
 * L. McMurchie, C. Ebeling, **PathFinder: A Negotiation-Based Performance-Driven Router for FPGAs** (FPGA 1995)
-* S. Brody, U. Alon, E. Yahav, **How Attentive are Graph Attention Networks?** (ICLR 2022), the GATv2 layer
-* P. Veličković et al., **Graph Attention Networks** (ICLR 2018)
+* P. Shaw, **Using Constraint Programming and Local Search Methods to Solve Vehicle Routing Problems** (CP 1998), the origin of LNS
+* J. Song et al., **A General Large Neighborhood Search Framework for Solving Integer Linear Programs** (NeurIPS 2020), learned destroy policies
+* S. Brody, U. Alon, E. Yahav, **How Attentive are Graph Attention Networks?** (ICLR 2022), GATv2
 * R. Kirby et al., **CongestionNet: Routing Congestion Prediction Using Deep Graph Neural Networks** (VLSI-SoC 2019)
 * X. Du et al., **HubRouter: Learning Global Routing via Hub Generation and Pin-hub Connection** (NeurIPS 2023)
+* P. Veličković et al., **Neural Execution of Graph Algorithms** (ICLR 2020), GNNs and Bellman-Ford
 * Q. Cappart et al., **Combinatorial Optimization and Reasoning with Graph Neural Networks** (JMLR 2023)
-* C. K. Joshi, T. Laurent, X. Bresson, **An Efficient Graph Convolutional Network Technique for the Travelling Salesman Problem** (2019)
 * A. B. Kahng, J. Lienig, I. L. Markov, J. Hu, **VLSI Physical Design: From Graph Partitioning to Timing Closure** (Springer)
-* PyTorch Geometric: https://pytorch-geometric.readthedocs.io
 
 ---
 
-*Built with help from Claude Code. The `m3d` toolkit and all benchmark data belong to the challenge
-repository and are not redistributed here.*
+*Built with help from Claude Code. The `m3d` toolkit and all benchmark data belong to the
+challenge repository and are not redistributed here.*

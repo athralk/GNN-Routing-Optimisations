@@ -1,0 +1,11 @@
+[engine] 9 cases from benchmarks_hard, prior=no
+  case_01: ratio 1.2837  (after negotiation 1.0496)  iters 10  refined 27 nets  lns 4565485 moves (45629 improving), ideal ratio 1.6683  10802.2s
+  case_04: ratio 1.2798  (after negotiation 1.0288)  iters 12  refined 34 nets  lns 2962508 moves (26502 improving), ideal ratio 1.7631  10803.1s
+  case_05: ratio 1.2725  (after negotiation 1.0303)  iters 12  refined 55 nets  lns 2783512 moves (31005 improving), ideal ratio 1.7356  10803.4s
+  case_02: ratio 1.3725  (after negotiation 0.9999)  iters 38  refined 59 nets  lns 5707533 moves (37704 improving), ideal ratio 1.8955  10804.0s
+  case_06: ratio 1.3020  (after negotiation 0.9985)  iters 13  refined 63 nets  lns 2746497 moves (25988 improving), ideal ratio 1.7698  10804.2s
+  case_07: ratio 1.3852  (after negotiation 0.9798)  iters 13  refined 74 nets  lns 2508710 moves (30453 improving), ideal ratio 1.9040  10804.9s
+  case_03: ratio 1.2630  (after negotiation 1.0167)  iters 10  refined 57 nets  lns 3536979 moves (30825 improving), ideal ratio 1.6839  10805.1s
+  case_08: ratio 1.3255  (after negotiation 1.0346)  iters 19  refined 74 nets  lns 2037243 moves (29159 improving), ideal ratio 1.8633  10805.2s
+  case_09: ratio 1.2338  (after negotiation 1.0293)  iters 9  refined 47 nets  lns 1419158 moves (24111 improving), ideal ratio 1.5974  10805.3s
+[engine] legal 9/9  aggregate 1.3011  (legal-only 1.3011)  total 97237.4s

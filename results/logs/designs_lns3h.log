@@ -1,0 +1,5 @@
+[engine] 3 cases from benchmarks_designs, prior=no
+  ctrl: ratio 1.3723  (after negotiation 1.1337)  iters 9  refined 130 nets  lns 301778 moves (13930 improving), ideal ratio 1.8026  10825.5s
+  router: ratio 1.1327  (after negotiation 1.0091)  iters 9  refined 229 nets  lns 252349 moves (9307 improving), ideal ratio 1.4975  10842.2s
+  int2float: ratio 1.5428  (after negotiation 1.2079)  iters 12  refined 248 nets  lns 434656 moves (23315 improving), ideal ratio 2.2011  10849.0s
+[engine] legal 3/3  aggregate 1.3385  (legal-only 1.3385)  total 32516.7s

@@ -137,12 +137,34 @@ def make_sample(job: Dict) -> Dict:
     cfg, prof = sample_config(idx, split, job["min_side"], job["max_side"],
                               job.get("profile"))
     t0 = time.time()
-    try:
-        res = generate_feasible(cfg)
-    except Exception as e:  # generator gave up (rare); record and move on
-        return {"idx": idx, "ok": False, "error": f"{type(e).__name__}: {e}",
-                "profile": prof, "seconds": round(time.time() - t0, 2)}
-    inst, sol = res.instance, res.reference
+    if job.get("labeler") == "engine":
+        # same problem as the reference labeler would make (same seed), but solved by
+        # the fast engine: negotiate + exact refinement + a short LNS polish
+        from engine.fast import solve
+        from m3d.generator import generate_candidate
+        res = None
+        for attempt in range(cfg.max_attempts):
+            seed = cfg.seed + attempt * 100003
+            try:
+                inst = generate_candidate(cfg, seed)
+            except Exception:
+                continue
+            sol, st = solve(inst, lns_seconds=job.get("lns_seconds", 5.0), seed=idx)
+            if sol is not None:
+                inst.seed = seed
+                res = type("R", (), {"attempts": attempt + 1})()
+                cfg.router = "engine"
+                break
+        if res is None:
+            return {"idx": idx, "ok": False, "error": "engine found no legal routing",
+                    "profile": prof, "seconds": round(time.time() - t0, 2)}
+    else:
+        try:
+            res = generate_feasible(cfg)
+        except Exception as e:  # generator gave up (rare); record and move on
+            return {"idx": idx, "ok": False, "error": f"{type(e).__name__}: {e}",
+                    "profile": prof, "seconds": round(time.time() - t0, 2)}
+        inst, sol = res.instance, res.reference
 
     # paranoia: re-check with the independent checker before trusting a label
     chk = check(inst, sol)
@@ -184,7 +206,8 @@ def _done_indices(out_dir: str) -> set:
 
 
 def generate(split: str, n: int, start: int, workers: int, out_root: str,
-             min_side: int, max_side: int, profile: Optional[str]) -> None:
+             min_side: int, max_side: int, profile: Optional[str],
+             labeler: str = "reference", lns_seconds: float = 5.0) -> None:
     out_dir = os.path.join(out_root, split)
     os.makedirs(out_dir, exist_ok=True)
     done = _done_indices(out_dir)
@@ -196,7 +219,8 @@ def generate(split: str, n: int, start: int, workers: int, out_root: str,
         return
 
     jobs = [{"idx": i, "split": split, "out_dir": out_dir, "min_side": min_side,
-             "max_side": max_side, "profile": profile} for i in todo]
+             "max_side": max_side, "profile": profile, "labeler": labeler,
+             "lns_seconds": lns_seconds} for i in todo]
     t0 = time.time()
     n_ok = n_fail = 0
     # only the parent process writes index.jsonl, so no write races
@@ -256,6 +280,11 @@ def main(argv=None) -> None:
     ap.add_argument("--min-side", type=int, default=16)
     ap.add_argument("--max-side", type=int, default=40,
                     help="keep small: pure-Python routers get slow on big grids")
+    ap.add_argument("--labeler", choices=["reference", "engine"], default="reference",
+                    help="who solves each instance: the challenge's reference router, or "
+                         "the fast engine (better labels, much faster)")
+    ap.add_argument("--lns-seconds", type=float, default=5.0,
+                    help="engine labeler: LNS polish time per sample")
     ap.add_argument("--profile", choices=PROFILES, default=None,
                     help="force one profile (default: random mix)")
     ap.add_argument("--summary", action="store_true", help="print dataset stats and exit")
@@ -265,7 +294,7 @@ def main(argv=None) -> None:
         summary(args.split, args.out)
         return
     generate(args.split, args.n, args.start, args.workers, args.out,
-             args.min_side, args.max_side, args.profile)
+             args.min_side, args.max_side, args.profile, args.labeler, args.lns_seconds)
 
 
 if __name__ == "__main__":   # required on Windows for multiprocessing

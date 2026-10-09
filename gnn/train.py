@@ -51,7 +51,7 @@ if _ROOT not in sys.path:
 
 import gnn._paths  # noqa: E402,F401  (finds the challenge repo's m3d toolkit)
 
-from gnn.features import FEATURE_VERSION, TARGET_NAMES, proc_dir  # noqa: E402
+from gnn.features import FEATURE_VERSION, TARGET_NAMES, proc_dir, set_dataset  # noqa: E402
 from gnn.model import CongestionGNN  # noqa: E402
 
 CKPT_ROOT = os.path.join(_ROOT, "gnn", "checkpoints")
@@ -179,6 +179,7 @@ def main(argv=None) -> None:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--run", default="v1", help="run name (checkpoint/log folder)")
     ap.add_argument("--tile", type=int, default=4)
+    ap.add_argument("--dataset", default="", help="'engine' = engine-labelled data")
     ap.add_argument("--features", type=int, default=FEATURE_VERSION,
                     help="processed feature-set version (1 = original 15 features)")
     ap.add_argument("--epochs", type=int, default=60)
@@ -205,6 +206,7 @@ def main(argv=None) -> None:
     device = torch.device(args.device)
 
     t0 = time.time()
+    set_dataset(args.dataset)
     feat_names = split_feature_names("train", args.tile, args.features)
     train = load_split("train", args.tile, args.features, args.limit,
                        args.min_side, args.max_side)

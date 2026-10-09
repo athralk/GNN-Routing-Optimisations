@@ -1,0 +1,152 @@
+﻿
+===== 17:26:39  features train =====
+[features] train: 3383 samples, 3383 to process -> D:\GNN_Routing_Optimisation\gnn\data\processed\engine_v2_tile4\train
+  200/3383  12s
+  400/3383  14s
+  600/3383  15s
+  800/3383  17s
+  1000/3383  19s
+  1200/3383  20s
+  1400/3383  21s
+  1600/3383  23s
+  1800/3383  24s
+  2000/3383  26s
+  2200/3383  27s
+  2400/3383  29s
+  2600/3383  30s
+  2800/3383  32s
+  3000/3383  34s
+  3200/3383  36s
+  3383/3383  39s
+
+===== 17:27:20  features val =====
+[features] val: 198 samples, 198 to process -> D:\GNN_Routing_Optimisation\gnn\data\processed\engine_v2_tile4\val
+  198/198  12s
+
+===== 17:27:32  features val_large =====
+[features] val_large: 40 samples, 40 to process -> D:\GNN_Routing_Optimisation\gnn\data\processed\engine_v2_tile4\val_large
+  40/40  7s
+
+===== 17:27:41  train v3_engine =====
+[train] features v2 (19), 3383 train / 198 val / 40 val_large graphs, 2,201,432 train nodes, loaded in 62.1s
+[train] device: cuda (NVIDIA GeForce RTX 4060 Laptop GPU)
+[ref]   mean   mse 0.01751 | lat mae 0.1336 r2 -0.001 | via mae 0.0661 r2 -0.056
+[ref]   linear mse 0.00768 | lat mae 0.0682 r2 +0.596 | via mae 0.0473 r2 +0.410
+[train] model: 8 GATv2 layers, hidden 128, dropout 0.1, 835,842 parameters
+epoch   1  train 0.04339 | val mse 0.00883 | lat mae 0.0670 r2 +0.610 | via mae 0.0630 r2 +0.053 || large: lat r2 +0.619 via r2 -0.087  56.4s  * best
+epoch   2  train 0.00656 | val mse 0.00643 | lat mae 0.0535 r2 +0.692 | via mae 0.0505 r2 +0.397 || large: lat r2 +0.710 via r2 +0.232  25.1s  * best
+epoch   3  train 0.00550 | val mse 0.00572 | lat mae 0.0511 r2 +0.702 | via mae 0.0422 r2 +0.552 || large: lat r2 +0.703 via r2 +0.417  21.8s  * best
+epoch   4  train 0.00516 | val mse 0.00529 | lat mae 0.0516 r2 +0.714 | via mae 0.0367 r2 +0.621 || large: lat r2 +0.749 via r2 +0.504  22.6s  * best
+epoch   5  train 0.00491 | val mse 0.00505 | lat mae 0.0488 r2 +0.727 | via mae 0.0345 r2 +0.641 || large: lat r2 +0.742 via r2 +0.525  28.7s  * best
+epoch   6  train 0.00476 | val mse 0.00499 | lat mae 0.0489 r2 +0.725 | via mae 0.0324 r2 +0.661 || large: lat r2 +0.747 via r2 +0.550  33.5s  * best
+epoch   7  train 0.00475 | val mse 0.00495 | lat mae 0.0478 r2 +0.727 | via mae 0.0321 r2 +0.667 || large: lat r2 +0.744 via r2 +0.552  24.4s  * best
+epoch   8  train 0.00470 | val mse 0.00478 | lat mae 0.0474 r2 +0.735 | via mae 0.0305 r2 +0.683 || large: lat r2 +0.730 via r2 +0.559  23.0s  * best
+epoch   9  train 0.00460 | val mse 0.00499 | lat mae 0.0513 r2 +0.718 | via mae 0.0306 r2 +0.690 || large: lat r2 +0.761 via r2 +0.573  23.0s
+epoch  10  train 0.00457 | val mse 0.00470 | lat mae 0.0482 r2 +0.738 | via mae 0.0304 r2 +0.692 || large: lat r2 +0.750 via r2 +0.572  22.9s  * best
+epoch  11  train 0.00452 | val mse 0.00469 | lat mae 0.0468 r2 +0.738 | via mae 0.0295 r2 +0.696 || large: lat r2 +0.750 via r2 +0.580  22.0s  * best
+epoch  12  train 0.00452 | val mse 0.00467 | lat mae 0.0469 r2 +0.737 | via mae 0.0286 r2 +0.703 || large: lat r2 +0.762 via r2 +0.582  23.0s  * best
+epoch  13  train 0.00443 | val mse 0.00472 | lat mae 0.0462 r2 +0.737 | via mae 0.0291 r2 +0.693 || large: lat r2 +0.762 via r2 +0.583  23.0s
+epoch  14  train 0.00449 | val mse 0.00469 | lat mae 0.0457 r2 +0.738 | via mae 0.0295 r2 +0.698 || large: lat r2 +0.743 via r2 +0.575  22.2s
+epoch  15  train 0.00442 | val mse 0.00462 | lat mae 0.0464 r2 +0.740 | via mae 0.0286 r2 +0.707 || large: lat r2 +0.767 via r2 +0.589  23.1s  * best
+epoch  16  train 0.00441 | val mse 0.00463 | lat mae 0.0458 r2 +0.739 | via mae 0.0282 r2 +0.707 || large: lat r2 +0.763 via r2 +0.591  23.0s
+epoch  17  train 0.00436 | val mse 0.00457 | lat mae 0.0460 r2 +0.743 | via mae 0.0281 r2 +0.708 || large: lat r2 +0.764 via r2 +0.590  23.0s  * best
+epoch  18  train 0.00439 | val mse 0.00459 | lat mae 0.0465 r2 +0.741 | via mae 0.0277 r2 +0.712 || large: lat r2 +0.764 via r2 +0.592  23.1s
+epoch  19  train 0.00437 | val mse 0.00466 | lat mae 0.0471 r2 +0.738 | via mae 0.0291 r2 +0.704 || large: lat r2 +0.760 via r2 +0.587  23.0s
+epoch  20  train 0.00430 | val mse 0.00453 | lat mae 0.0463 r2 +0.745 | via mae 0.0275 r2 +0.711 || large: lat r2 +0.767 via r2 +0.594  23.1s  * best
+epoch  21  train 0.00430 | val mse 0.00456 | lat mae 0.0455 r2 +0.744 | via mae 0.0286 r2 +0.708 || large: lat r2 +0.764 via r2 +0.590  23.0s
+epoch  22  train 0.00430 | val mse 0.00457 | lat mae 0.0459 r2 +0.743 | via mae 0.0272 r2 +0.710 || large: lat r2 +0.767 via r2 +0.594  23.1s
+epoch  23  train 0.00428 | val mse 0.00456 | lat mae 0.0452 r2 +0.745 | via mae 0.0281 r2 +0.704 || large: lat r2 +0.763 via r2 +0.589  71.2s
+epoch  24  train 0.00429 | val mse 0.00452 | lat mae 0.0455 r2 +0.746 | via mae 0.0277 r2 +0.710 || large: lat r2 +0.768 via r2 +0.593  175.3s  * best
+epoch  25  train 0.00426 | val mse 0.00454 | lat mae 0.0462 r2 +0.744 | via mae 0.0276 r2 +0.714 || large: lat r2 +0.768 via r2 +0.597  217.9s
+epoch  26  train 0.00426 | val mse 0.00461 | lat mae 0.0448 r2 +0.739 | via mae 0.0270 r2 +0.711 || large: lat r2 +0.757 via r2 +0.588  217.9s
+epoch  27  train 0.00429 | val mse 0.00467 | lat mae 0.0485 r2 +0.735 | via mae 0.0279 r2 +0.713 || large: lat r2 +0.764 via r2 +0.592  215.0s
+epoch  28  train 0.00427 | val mse 0.00452 | lat mae 0.0453 r2 +0.745 | via mae 0.0265 r2 +0.715 || large: lat r2 +0.763 via r2 +0.593  103.4s
+epoch  29  train 0.00423 | val mse 0.00448 | lat mae 0.0449 r2 +0.747 | via mae 0.0264 r2 +0.719 || large: lat r2 +0.770 via r2 +0.599  18.2s  * best
+epoch  30  train 0.00420 | val mse 0.00445 | lat mae 0.0448 r2 +0.750 | via mae 0.0269 r2 +0.718 || large: lat r2 +0.765 via r2 +0.598  18.5s  * best
+epoch  31  train 0.00420 | val mse 0.00449 | lat mae 0.0451 r2 +0.747 | via mae 0.0268 r2 +0.715 || large: lat r2 +0.764 via r2 +0.593  18.5s
+epoch  32  train 0.00419 | val mse 0.00457 | lat mae 0.0453 r2 +0.740 | via mae 0.0261 r2 +0.720 || large: lat r2 +0.757 via r2 +0.596  18.5s
+epoch  33  train 0.00418 | val mse 0.00462 | lat mae 0.0442 r2 +0.737 | via mae 0.0270 r2 +0.717 || large: lat r2 +0.759 via r2 +0.598  18.4s
+epoch  34  train 0.00422 | val mse 0.00447 | lat mae 0.0459 r2 +0.748 | via mae 0.0267 r2 +0.719 || large: lat r2 +0.769 via r2 +0.599  18.5s
+epoch  35  train 0.00415 | val mse 0.00453 | lat mae 0.0454 r2 +0.744 | via mae 0.0264 r2 +0.718 || large: lat r2 +0.765 via r2 +0.599  18.5s
+epoch  36  train 0.00415 | val mse 0.00444 | lat mae 0.0446 r2 +0.749 | via mae 0.0270 r2 +0.721 || large: lat r2 +0.763 via r2 +0.597  18.4s  * best
+epoch  37  train 0.00415 | val mse 0.00446 | lat mae 0.0452 r2 +0.748 | via mae 0.0267 r2 +0.721 || large: lat r2 +0.768 via r2 +0.600  18.6s
+epoch  38  train 0.00419 | val mse 0.00448 | lat mae 0.0448 r2 +0.748 | via mae 0.0266 r2 +0.717 || large: lat r2 +0.765 via r2 +0.601  18.4s
+epoch  39  train 0.00415 | val mse 0.00447 | lat mae 0.0447 r2 +0.747 | via mae 0.0264 r2 +0.719 || large: lat r2 +0.767 via r2 +0.600  18.3s
+epoch  40  train 0.00411 | val mse 0.00443 | lat mae 0.0450 r2 +0.751 | via mae 0.0270 r2 +0.720 || large: lat r2 +0.768 via r2 +0.599  18.4s  * best
+epoch  41  train 0.00411 | val mse 0.00449 | lat mae 0.0449 r2 +0.746 | via mae 0.0265 r2 +0.722 || large: lat r2 +0.765 via r2 +0.601  18.4s
+epoch  42  train 0.00409 | val mse 0.00443 | lat mae 0.0450 r2 +0.749 | via mae 0.0263 r2 +0.723 || large: lat r2 +0.768 via r2 +0.600  18.8s
+epoch  43  train 0.00410 | val mse 0.00446 | lat mae 0.0448 r2 +0.748 | via mae 0.0262 r2 +0.722 || large: lat r2 +0.767 via r2 +0.600  18.7s
+epoch  44  train 0.00411 | val mse 0.00447 | lat mae 0.0451 r2 +0.748 | via mae 0.0270 r2 +0.718 || large: lat r2 +0.769 via r2 +0.599  18.4s
+epoch  45  train 0.00408 | val mse 0.00458 | lat mae 0.0441 r2 +0.741 | via mae 0.0274 r2 +0.713 || large: lat r2 +0.762 via r2 +0.592  18.8s
+epoch  46  train 0.00406 | val mse 0.00442 | lat mae 0.0448 r2 +0.751 | via mae 0.0266 r2 +0.722 || large: lat r2 +0.770 via r2 +0.600  18.4s  * best
+epoch  47  train 0.00405 | val mse 0.00441 | lat mae 0.0450 r2 +0.752 | via mae 0.0269 r2 +0.722 || large: lat r2 +0.771 via r2 +0.600  18.1s  * best
+epoch  48  train 0.00403 | val mse 0.00446 | lat mae 0.0445 r2 +0.748 | via mae 0.0269 r2 +0.720 || large: lat r2 +0.767 via r2 +0.599  18.3s
+epoch  49  train 0.00404 | val mse 0.00453 | lat mae 0.0439 r2 +0.744 | via mae 0.0271 r2 +0.715 || large: lat r2 +0.767 via r2 +0.598  18.2s
+epoch  50  train 0.00403 | val mse 0.00452 | lat mae 0.0445 r2 +0.743 | via mae 0.0261 r2 +0.723 || large: lat r2 +0.768 via r2 +0.602  18.1s
+epoch  51  train 0.00398 | val mse 0.00445 | lat mae 0.0448 r2 +0.747 | via mae 0.0259 r2 +0.724 || large: lat r2 +0.768 via r2 +0.602  18.2s
+epoch  52  train 0.00400 | val mse 0.00444 | lat mae 0.0443 r2 +0.749 | via mae 0.0265 r2 +0.723 || large: lat r2 +0.771 via r2 +0.601  18.3s
+epoch  53  train 0.00398 | val mse 0.00442 | lat mae 0.0446 r2 +0.750 | via mae 0.0261 r2 +0.725 || large: lat r2 +0.768 via r2 +0.603  18.2s
+epoch  54  train 0.00398 | val mse 0.00447 | lat mae 0.0445 r2 +0.747 | via mae 0.0263 r2 +0.724 || large: lat r2 +0.767 via r2 +0.602  18.3s
+epoch  55  train 0.00397 | val mse 0.00442 | lat mae 0.0448 r2 +0.750 | via mae 0.0260 r2 +0.725 || large: lat r2 +0.770 via r2 +0.603  18.3s
+epoch  56  train 0.00395 | val mse 0.00442 | lat mae 0.0444 r2 +0.750 | via mae 0.0261 r2 +0.724 || large: lat r2 +0.770 via r2 +0.602  18.2s
+epoch  57  train 0.00394 | val mse 0.00443 | lat mae 0.0447 r2 +0.749 | via mae 0.0258 r2 +0.725 || large: lat r2 +0.769 via r2 +0.603  18.5s
+epoch  58  train 0.00393 | val mse 0.00441 | lat mae 0.0446 r2 +0.750 | via mae 0.0259 r2 +0.725 || large: lat r2 +0.771 via r2 +0.604  18.4s
+epoch  59  train 0.00391 | val mse 0.00449 | lat mae 0.0442 r2 +0.744 | via mae 0.0259 r2 +0.725 || large: lat r2 +0.767 via r2 +0.604  18.4s
+epoch  60  train 0.00390 | val mse 0.00445 | lat mae 0.0441 r2 +0.748 | via mae 0.0261 r2 +0.725 || large: lat r2 +0.772 via r2 +0.603  18.3s
+epoch  61  train 0.00388 | val mse 0.00442 | lat mae 0.0442 r2 +0.750 | via mae 0.0258 r2 +0.725 || large: lat r2 +0.769 via r2 +0.604  18.2s
+epoch  62  train 0.00391 | val mse 0.00439 | lat mae 0.0446 r2 +0.752 | via mae 0.0259 r2 +0.726 || large: lat r2 +0.771 via r2 +0.604  18.1s  * best
+epoch  63  train 0.00387 | val mse 0.00447 | lat mae 0.0438 r2 +0.746 | via mae 0.0257 r2 +0.724 || large: lat r2 +0.768 via r2 +0.603  18.2s
+epoch  64  train 0.00390 | val mse 0.00444 | lat mae 0.0444 r2 +0.748 | via mae 0.0260 r2 +0.725 || large: lat r2 +0.770 via r2 +0.603  18.2s
+epoch  65  train 0.00388 | val mse 0.00442 | lat mae 0.0442 r2 +0.749 | via mae 0.0258 r2 +0.725 || large: lat r2 +0.772 via r2 +0.604  18.1s
+epoch  66  train 0.00386 | val mse 0.00446 | lat mae 0.0440 r2 +0.747 | via mae 0.0258 r2 +0.725 || large: lat r2 +0.767 via r2 +0.603  18.2s
+epoch  67  train 0.00383 | val mse 0.00444 | lat mae 0.0440 r2 +0.749 | via mae 0.0258 r2 +0.724 || large: lat r2 +0.768 via r2 +0.604  18.3s
+epoch  68  train 0.00383 | val mse 0.00441 | lat mae 0.0442 r2 +0.751 | via mae 0.0260 r2 +0.725 || large: lat r2 +0.771 via r2 +0.603  18.3s
+epoch  69  train 0.00384 | val mse 0.00440 | lat mae 0.0440 r2 +0.751 | via mae 0.0258 r2 +0.726 || large: lat r2 +0.770 via r2 +0.604  18.5s
+epoch  70  train 0.00384 | val mse 0.00442 | lat mae 0.0439 r2 +0.749 | via mae 0.0258 r2 +0.725 || large: lat r2 +0.770 via r2 +0.604  18.4s
+epoch  71  train 0.00383 | val mse 0.00443 | lat mae 0.0437 r2 +0.749 | via mae 0.0258 r2 +0.725 || large: lat r2 +0.769 via r2 +0.603  18.4s
+epoch  72  train 0.00383 | val mse 0.00443 | lat mae 0.0440 r2 +0.749 | via mae 0.0258 r2 +0.725 || large: lat r2 +0.769 via r2 +0.604  18.4s
+epoch  73  train 0.00383 | val mse 0.00442 | lat mae 0.0439 r2 +0.749 | via mae 0.0258 r2 +0.725 || large: lat r2 +0.770 via r2 +0.604  18.3s
+epoch  74  train 0.00382 | val mse 0.00443 | lat mae 0.0438 r2 +0.749 | via mae 0.0258 r2 +0.725 || large: lat r2 +0.769 via r2 +0.604  18.6s
+epoch  75  train 0.00380 | val mse 0.00443 | lat mae 0.0440 r2 +0.749 | via mae 0.0258 r2 +0.725 || large: lat r2 +0.769 via r2 +0.604  18.7s
+epoch  76  train 0.00383 | val mse 0.00443 | lat mae 0.0439 r2 +0.749 | via mae 0.0258 r2 +0.725 || large: lat r2 +0.769 via r2 +0.604  18.6s
+epoch  77  train 0.00380 | val mse 0.00443 | lat mae 0.0439 r2 +0.749 | via mae 0.0258 r2 +0.725 || large: lat r2 +0.769 via r2 +0.604  18.6s
+[train] early stop: no improvement for 15 epochs
+[train] done in 42.1 min; best val mse 0.00439 at epoch 62
+[train] checkpoint: D:\GNN_Routing_Optimisation\gnn\checkpoints\v3_engine\best.pt
+[train] log:        D:\GNN_Routing_Optimisation\gnn\runs\v3_engine\metrics.csv
+
+===== 18:10:05  hard, engine only (control) =====
+[engine] 9 cases from benchmarks_hard, prior=no
+  case_01: ratio 1.2529  (after negotiation 1.0496)  iters 10  refined 27 nets  lns 517798 moves (196 improving), ideal ratio 1.6683  1205.0s
+  case_04: ratio 1.2518  (after negotiation 1.0288)  iters 12  refined 34 nets  lns 325948 moves (275 improving), ideal ratio 1.7631  1205.8s
+  case_05: ratio 1.2445  (after negotiation 1.0303)  iters 12  refined 55 nets  lns 290664 moves (291 improving), ideal ratio 1.7356  1206.1s
+  case_02: ratio 1.2824  (after negotiation 0.9999)  iters 38  refined 59 nets  lns 601810 moves (249 improving), ideal ratio 1.8955  1206.6s
+  case_06: ratio 1.2078  (after negotiation 0.9985)  iters 13  refined 63 nets  lns 311595 moves (290 improving), ideal ratio 1.7698  1206.8s
+  case_07: ratio 1.2849  (after negotiation 0.9798)  iters 13  refined 74 nets  lns 265472 moves (477 improving), ideal ratio 1.9040  1207.3s
+  case_08: ratio 1.2545  (after negotiation 1.0346)  iters 19  refined 74 nets  lns 221722 moves (359 improving), ideal ratio 1.8633  1207.7s
+  case_03: ratio 1.2266  (after negotiation 1.0167)  iters 10  refined 57 nets  lns 387075 moves (231 improving), ideal ratio 1.6839  1207.8s
+  case_09: ratio 1.1910  (after negotiation 1.0293)  iters 9  refined 47 nets  lns 152726 moves (302 improving), ideal ratio 1.5974  1207.8s
+[engine] legal 9/9  aggregate 1.2437  (legal-only 1.2437)  total 10860.8s
+
+===== 18:30:19  hard, engine + GNN prior =====
+[engine] 9 cases from benchmarks_hard, prior=yes
+  case_01: ratio 1.2692  (after negotiation 0.9714)  iters 11  refined 46 nets  lns 501270 moves (244 improving), ideal ratio 1.6683  1203.4s
+  case_04: ratio 1.2182  (after negotiation 0.9896)  iters 11  refined 46 nets  lns 344169 moves (253 improving), ideal ratio 1.7631  1202.9s
+  case_05: ratio 1.2448  (after negotiation 1.0884)  iters 11  refined 58 nets  lns 289651 moves (193 improving), ideal ratio 1.7356  1203.2s
+  case_03: ratio 1.2143  (after negotiation 0.9877)  iters 11  refined 47 nets  lns 389662 moves (242 improving), ideal ratio 1.6839  1203.5s
+  case_06: ratio 1.2320  (after negotiation 0.9693)  iters 12  refined 73 nets  lns 315581 moves (419 improving), ideal ratio 1.7698  1203.9s
+  case_02: ratio 1.2700  (after negotiation 1.0497)  iters 10  refined 47 nets  lns 676560 moves (247 improving), ideal ratio 1.8955  1204.2s
+  case_09: ratio 1.1902  (after negotiation 1.0474)  iters 11  refined 62 nets  lns 158879 moves (251 improving), ideal ratio 1.5974  1204.8s
+  case_07: ratio 1.2679  (after negotiation 1.0173)  iters 11  refined 67 nets  lns 266694 moves (447 improving), ideal ratio 1.9040  1206.8s
+  case_08: ratio 1.2774  (after negotiation 1.0415)  iters 11  refined 87 nets  lns 222752 moves (431 improving), ideal ratio 1.8633  1207.6s
+[engine] legal 9/9  aggregate 1.2423  (legal-only 1.2423)  total 10840.4s
+
+===== 18:51:29  designs, engine + GNN prior =====
+[engine] 3 cases from benchmarks_designs, prior=yes
+  ctrl: ratio 1.3078  (after negotiation 1.1501)  iters 9  refined 126 nets  lns 37185 moves (519 improving), ideal ratio 1.8026  1225.5s
+  router: ratio 1.0932  (after negotiation 1.0062)  iters 11  refined 260 nets  lns 25094 moves (573 improving), ideal ratio 1.4975  1240.2s
+  int2float: ratio 1.4497  (after negotiation 1.2123)  iters 12  refined 227 nets  lns 50111 moves (1026 improving), ideal ratio 2.2011  1245.1s
+[engine] legal 3/3  aggregate 1.2749  (legal-only 1.2749)  total 3710.8s
+
+===== 19:12:37  congested, engine + GNN prior =====
+[engine] 4 cases from benchmarks_congested, prior=yes

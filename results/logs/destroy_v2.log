@@ -1,0 +1,215 @@
+[destroy] collecting 400 instances, 12 workers
+  [1/400] sample_002893: 32 nets, 17.5% improvable, 55.6s
+  [2/400] sample_000583: 27 nets, 11.9% improvable, 60.1s
+  [3/400] sample_002991: 58 nets, 14.1% improvable, 62.0s
+  [4/400] sample_000606: 40 nets, 18.5% improvable, 62.6s
+  [5/400] sample_000867: 34 nets, 13.5% improvable, 70.1s
+  [6/400] sample_002459: 59 nets, 27.1% improvable, 78.7s
+  [7/400] sample_001468: 58 nets, 36.6% improvable, 80.0s
+  [8/400] sample_002082: 39 nets, 14.4% improvable, 84.7s
+  [9/400] sample_000114: 94 nets, 26.8% improvable, 85.7s
+  [10/400] sample_000377: 57 nets, 29.5% improvable, 85.8s
+  [11/400] sample_000157: 23 nets, 6.1% improvable, 36.3s
+  [12/400] sample_002480: 99 nets, 19.8% improvable, 92.1s
+  [13/400] sample_000347: 22 nets, 9.1% improvable, 37.2s
+  [14/400] sample_002625: 29 nets, 20.7% improvable, 41.7s
+  [15/400] sample_000532: 60 nets, 15.0% improvable, 49.8s
+  [16/400] sample_000529: 21 nets, 11.4% improvable, 35.0s
+  [17/400] sample_000655: 18 nets, 7.8% improvable, 37.0s
+  [18/400] sample_000590: 35 nets, 16.0% improvable, 40.9s
+  [19/400] sample_001699: 47 nets, 14.0% improvable, 53.2s
+  [20/400] sample_000845: 76 nets, 22.9% improvable, 58.5s
+  [21/400] sample_000425: 94 nets, 48.5% improvable, 156.9s
+  [22/400] sample_001776: 61 nets, 23.0% improvable, 58.7s
+  [23/400] sample_000540: 39 nets, 20.0% improvable, 68.0s
+  [24/400] sample_002393: 59 nets, 25.1% improvable, 61.1s
+  [25/400] sample_001904: 79 nets, 35.9% improvable, 96.7s
+  [26/400] sample_001796: 29 nets, 9.7% improvable, 42.4s
+  [27/400] sample_002624: 48 nets, 33.7% improvable, 75.0s
+  [28/400] sample_001396: 61 nets, 30.2% improvable, 77.2s
+  [29/400] sample_001477: 44 nets, 16.4% improvable, 102.7s
+  [30/400] sample_000840: 38 nets, 28.9% improvable, 56.1s
+  [31/400] sample_001938: 28 nets, 7.9% improvable, 38.3s
+  [32/400] sample_002598: 61 nets, 31.1% improvable, 70.6s
+  [33/400] sample_001363: 26 nets, 11.5% improvable, 36.1s
+  [34/400] sample_002435: 56 nets, 15.4% improvable, 54.2s
+  [35/400] sample_000904: 54 nets, 35.9% improvable, 101.2s
+  [36/400] sample_002273: 48 nets, 22.5% improvable, 55.9s
+  [37/400] sample_002927: 30 nets, 19.3% improvable, 54.8s
+  [38/400] sample_002266: 40 nets, 9.0% improvable, 37.9s
+  [39/400] sample_002862: 31 nets, 20.0% improvable, 38.3s
+  [40/400] sample_001670: 53 nets, 31.7% improvable, 55.2s
+  [41/400] sample_000962: 59 nets, 39.7% improvable, 154.9s
+  [42/400] sample_000131: 49 nets, 10.6% improvable, 37.8s
+  [43/400] sample_000789: 65 nets, 18.8% improvable, 44.4s
+  [44/400] sample_000604: 79 nets, 28.9% improvable, 62.4s
+  [45/400] sample_001446: 41 nets, 22.9% improvable, 57.3s
+  [46/400] sample_002478: 54 nets, 13.7% improvable, 49.8s
+  [47/400] sample_001896: 56 nets, 12.1% improvable, 39.4s
+  [48/400] sample_000287: 25 nets, 2.4% improvable, 34.6s
+  [49/400] sample_001368: 74 nets, 33.8% improvable, 120.4s
+  [50/400] sample_001660: 30 nets, 15.3% improvable, 43.6s
+  [51/400] sample_002811: 24 nets, 15.8% improvable, 36.5s
+  [52/400] sample_002597: 16 nets, 11.2% improvable, 33.2s
+  [53/400] sample_000872: 55 nets, 18.9% improvable, 45.9s
+  [54/400] sample_002561: 40 nets, 11.5% improvable, 45.6s
+  [55/400] sample_003188: 68 nets, 31.2% improvable, 101.7s
+  [56/400] sample_002371: 44 nets, 20.9% improvable, 56.9s
+  [57/400] sample_001927: 76 nets, 27.6% improvable, 100.6s
+  [58/400] sample_002763: 55 nets, 19.6% improvable, 79.8s
+  [59/400] sample_001844: 62 nets, 31.9% improvable, 60.8s
+  [60/400] sample_000657: 37 nets, 23.8% improvable, 67.6s
+  [61/400] sample_002085: 19 nets, 15.8% improvable, 35.0s
+  [62/400] sample_001988: 77 nets, 26.0% improvable, 69.2s
+  [63/400] sample_002998: 47 nets, 12.3% improvable, 36.7s
+  [64/400] sample_002494: 30 nets, 6.7% improvable, 45.7s
+  [65/400] sample_002957: 39 nets, 21.5% improvable, 43.4s
+  [66/400] sample_003163: 156 nets, 34.4% improvable, 335.5s
+  [67/400] sample_001985: 69 nets, 21.2% improvable, 74.1s
+  [68/400] sample_001902: 72 nets, 24.2% improvable, 77.1s
+  [69/400] sample_000007: 31 nets, 2.6% improvable, 36.6s
+  [70/400] sample_000146: 59 nets, 31.5% improvable, 56.2s
+  [71/400] sample_002657: 44 nets, 15.9% improvable, 48.9s
+  [72/400] sample_002234: 62 nets, 34.2% improvable, 91.2s
+  [73/400] sample_002071: 15 nets, 8.0% improvable, 32.5s
+  [74/400] sample_001572: 20 nets, 2.0% improvable, 33.3s
+  [75/400] sample_000829: 45 nets, 13.3% improvable, 39.0s
+  [76/400] sample_000979: 40 nets, 14.5% improvable, 36.7s
+  [77/400] sample_001389: 44 nets, 24.1% improvable, 90.2s
+  [78/400] sample_000291: 20 nets, 7.0% improvable, 35.8s
+  [79/400] sample_001463: 37 nets, 16.2% improvable, 40.1s
+  [80/400] sample_001873: 51 nets, 23.5% improvable, 81.9s
+  [81/400] sample_000545: 40 nets, 24.0% improvable, 43.1s
+  [82/400] sample_000080: 39 nets, 4.6% improvable, 37.4s
+  [83/400] sample_000623: 22 nets, 0.9% improvable, 33.9s
+  [84/400] sample_001023: 41 nets, 16.1% improvable, 35.9s
+  [85/400] sample_002925: 49 nets, 15.1% improvable, 50.7s
+  [86/400] sample_002373: 23 nets, 20.0% improvable, 34.9s
+  [87/400] sample_003340: 68 nets, 34.1% improvable, 253.8s
+  [88/400] sample_002462: 50 nets, 22.8% improvable, 85.9s
+  [89/400] sample_003142: 90 nets, 24.9% improvable, 275.3s
+  [90/400] sample_001175: 75 nets, 17.9% improvable, 49.1s
+  [91/400] sample_001472: 29 nets, 4.1% improvable, 31.9s
+  [92/400] sample_002374: 93 nets, 35.7% improvable, 74.9s
+  [93/400] sample_002095: 54 nets, 25.6% improvable, 59.6s
+  [94/400] sample_001906: 31 nets, 27.7% improvable, 46.3s
+  [95/400] sample_001742: 25 nets, 15.2% improvable, 38.0s
+  [96/400] sample_002166: 81 nets, 37.0% improvable, 122.9s
+  [97/400] sample_003199: 173 nets, 37.6% improvable, 380.1s
+  [98/400] sample_000692: 34 nets, 17.6% improvable, 41.4s
+  [99/400] sample_001162: 41 nets, 15.1% improvable, 42.4s
+  [100/400] sample_002941: 33 nets, 21.8% improvable, 41.7s
+  [101/400] sample_000761: 58 nets, 12.4% improvable, 51.4s
+  [102/400] sample_003147: 161 nets, 37.0% improvable, 947.3s
+  [103/400] sample_001423: 49 nets, 9.8% improvable, 35.1s
+  [104/400] sample_001316: 34 nets, 17.6% improvable, 37.3s
+  [105/400] sample_002531: 78 nets, 23.6% improvable, 88.3s
+  [106/400] sample_000475: 77 nets, 15.6% improvable, 55.0s
+  [107/400] sample_001284: 25 nets, 24.0% improvable, 34.6s
+  [108/400] sample_001157: 33 nets, 6.1% improvable, 34.1s
+  [109/400] sample_001994: 61 nets, 39.3% improvable, 95.4s
+  [110/400] sample_002783: 32 nets, 13.1% improvable, 58.0s
+  [111/400] sample_000340: 43 nets, 30.2% improvable, 51.3s
+  [112/400] sample_001322: 55 nets, 14.2% improvable, 41.1s
+  [113/400] sample_002946: 29 nets, 14.5% improvable, 43.7s
+  [114/400] sample_001113: 38 nets, 12.6% improvable, 36.3s
+  [115/400] sample_001833: 30 nets, 23.3% improvable, 46.9s
+  [116/400] sample_000698: 35 nets, 16.0% improvable, 60.9s
+  [117/400] sample_000937: 58 nets, 16.2% improvable, 84.8s
+  [118/400] sample_000998: 35 nets, 18.9% improvable, 57.3s
+  [119/400] sample_002017: 80 nets, 31.2% improvable, 68.2s
+  [120/400] sample_000814: 74 nets, 26.8% improvable, 107.8s
+  [121/400] sample_003229: 166 nets, 41.1% improvable, 1103.4s
+  [122/400] sample_002942: 48 nets, 11.3% improvable, 40.4s
+  [123/400] sample_001970: 21 nets, 27.6% improvable, 34.6s
+  [124/400] sample_001150: 46 nets, 27.8% improvable, 86.5s
+  [125/400] sample_001693: 20 nets, 9.0% improvable, 37.2s
+  [126/400] sample_003216: 133 nets, 42.6% improvable, 424.9s
+  [127/400] sample_001754: 34 nets, 30.6% improvable, 58.1s
+  [128/400] sample_001698: 88 nets, 26.8% improvable, 85.6s
+  [129/400] sample_001956: 75 nets, 24.3% improvable, 83.2s
+  [130/400] sample_002753: 49 nets, 22.4% improvable, 87.3s
+  [131/400] sample_001869: 44 nets, 18.6% improvable, 49.5s
+  [132/400] sample_001920: 22 nets, 10.0% improvable, 37.7s
+  [133/400] sample_003387: 144 nets, 38.5% improvable, 541.1s
+  [134/400] sample_001123: 39 nets, 22.6% improvable, 54.7s
+  [135/400] sample_003049: 121 nets, 63.0% improvable, 1155.0s
+  [136/400] sample_001015: 33 nets, 9.1% improvable, 34.8s
+  [137/400] sample_000219: 54 nets, 22.2% improvable, 65.7s
+  [138/400] sample_002286: 27 nets, 12.6% improvable, 36.9s
+  [139/400] sample_000863: 24 nets, 5.8% improvable, 39.5s
+  [140/400] sample_000385: 59 nets, 27.5% improvable, 86.8s
+  [141/400] sample_003090: 178 nets, 41.3% improvable, 947.8s
+  [142/400] sample_000573: 35 nets, 12.0% improvable, 53.6s
+  [143/400] sample_001590: 55 nets, 25.1% improvable, 115.3s
+  [144/400] sample_002353: 27 nets, 9.6% improvable, 37.8s
+  [145/400] sample_000723: 23 nets, 24.3% improvable, 36.2s
+  [146/400] sample_002012: 31 nets, 20.6% improvable, 36.3s
+  [147/400] sample_000938: 37 nets, 19.5% improvable, 76.1s
+  [148/400] sample_003391: 236 nets, 52.5% improvable, 1393.6s
+  [149/400] sample_000514: 23 nets, 11.3% improvable, 33.5s
+  [150/400] sample_002047: 30 nets, 16.0% improvable, 37.7s
+  [151/400] sample_002912: 47 nets, 24.3% improvable, 95.7s
+[destroy] 650 train / 105 val snapshots, 25.6% positive
+[ref]   regret ranking: AUC 0.522  hit-rate of top 10% 0.265  (random = 0.256)
+epoch   1  val AUC 0.546  hit-rate top 10% 0.320  * best
+epoch   2  val AUC 0.544  hit-rate top 10% 0.313
+epoch   3  val AUC 0.548  hit-rate top 10% 0.313  * best
+epoch   4  val AUC 0.550  hit-rate top 10% 0.319  * best
+epoch   5  val AUC 0.554  hit-rate top 10% 0.308  * best
+epoch   6  val AUC 0.557  hit-rate top 10% 0.317  * best
+epoch   7  val AUC 0.558  hit-rate top 10% 0.323  * best
+epoch   8  val AUC 0.558  hit-rate top 10% 0.335
+epoch   9  val AUC 0.562  hit-rate top 10% 0.339  * best
+epoch  10  val AUC 0.563  hit-rate top 10% 0.334  * best
+epoch  11  val AUC 0.566  hit-rate top 10% 0.318  * best
+epoch  12  val AUC 0.564  hit-rate top 10% 0.311
+epoch  13  val AUC 0.559  hit-rate top 10% 0.327
+epoch  14  val AUC 0.557  hit-rate top 10% 0.318
+epoch  15  val AUC 0.564  hit-rate top 10% 0.329
+epoch  16  val AUC 0.570  hit-rate top 10% 0.323  * best
+epoch  17  val AUC 0.569  hit-rate top 10% 0.316
+epoch  18  val AUC 0.573  hit-rate top 10% 0.314  * best
+epoch  19  val AUC 0.575  hit-rate top 10% 0.336  * best
+epoch  20  val AUC 0.575  hit-rate top 10% 0.321
+epoch  21  val AUC 0.580  hit-rate top 10% 0.323  * best
+epoch  22  val AUC 0.580  hit-rate top 10% 0.318
+epoch  23  val AUC 0.578  hit-rate top 10% 0.317
+epoch  24  val AUC 0.578  hit-rate top 10% 0.310
+epoch  25  val AUC 0.583  hit-rate top 10% 0.326  * best
+epoch  26  val AUC 0.580  hit-rate top 10% 0.310
+epoch  27  val AUC 0.579  hit-rate top 10% 0.319
+epoch  28  val AUC 0.579  hit-rate top 10% 0.319
+epoch  29  val AUC 0.577  hit-rate top 10% 0.319
+epoch  30  val AUC 0.579  hit-rate top 10% 0.310
+epoch  31  val AUC 0.578  hit-rate top 10% 0.313
+epoch  32  val AUC 0.580  hit-rate top 10% 0.317
+epoch  33  val AUC 0.573  hit-rate top 10% 0.306
+epoch  34  val AUC 0.578  hit-rate top 10% 0.324
+epoch  35  val AUC 0.578  hit-rate top 10% 0.316
+epoch  36  val AUC 0.578  hit-rate top 10% 0.323
+epoch  37  val AUC 0.575  hit-rate top 10% 0.305
+epoch  38  val AUC 0.578  hit-rate top 10% 0.326
+epoch  39  val AUC 0.577  hit-rate top 10% 0.317
+epoch  40  val AUC 0.574  hit-rate top 10% 0.305
+epoch  41  val AUC 0.576  hit-rate top 10% 0.320
+epoch  42  val AUC 0.574  hit-rate top 10% 0.307
+epoch  43  val AUC 0.575  hit-rate top 10% 0.309
+epoch  44  val AUC 0.574  hit-rate top 10% 0.296
+epoch  45  val AUC 0.575  hit-rate top 10% 0.307
+epoch  46  val AUC 0.576  hit-rate top 10% 0.328
+epoch  47  val AUC 0.577  hit-rate top 10% 0.321
+epoch  48  val AUC 0.579  hit-rate top 10% 0.323
+epoch  49  val AUC 0.576  hit-rate top 10% 0.324
+epoch  50  val AUC 0.575  hit-rate top 10% 0.314
+epoch  51  val AUC 0.573  hit-rate top 10% 0.312
+epoch  52  val AUC 0.573  hit-rate top 10% 0.316
+epoch  53  val AUC 0.573  hit-rate top 10% 0.319
+epoch  54  val AUC 0.573  hit-rate top 10% 0.326
+epoch  55  val AUC 0.576  hit-rate top 10% 0.321
+epoch  56  val AUC 0.575  hit-rate top 10% 0.318
+epoch  57  val AUC 0.577  hit-rate top 10% 0.314
+epoch  58  val AUC 0.575  hit-rate top 10% 0.323
+epoch  59  val AUC 0.573  hit-rate top 10% 0.321
+epoch  60  val AUC 0.573  hit-rate top 10% 0.315
+[destroy] saved models/destroy_v2.pt
