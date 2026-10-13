@@ -1,0 +1,2 @@
+=== 16:33 LP-guided restart: cases 01-06 x samples 0,1, LNS 600s each
+[restart case_06 s0] LP 1.4332 | start clashes 578 cells | repaired 0.9647 -> refined 1.0100 -> LNS 600s 1.2219  (old best 1.3102)    725s

@@ -1,0 +1,13 @@
+[ab] v2_s1: engine.run --suite benchmarks_hard --workers 9 --lns-seconds 600.0 --seed 1 --out-dir results/ab3\v2_s1 --json-out results/ab3\v2_s1.json --warm results/hard_final --destroy models/destroy_v2.pt --anneal 0.05
+[ab] v2_s1: aggregate 1.3042, 53.0 improving moves/min per case
+[ab] v2_s2: engine.run --suite benchmarks_hard --workers 9 --lns-seconds 600.0 --seed 2 --out-dir results/ab3\v2_s2 --json-out results/ab3\v2_s2.json --warm results/hard_final --destroy models/destroy_v2.pt --anneal 0.05
+[ab] v2_s2: aggregate 1.3045, 48.9 improving moves/min per case
+[ab] v3_s1: engine.run --suite benchmarks_hard --workers 9 --lns-seconds 600.0 --seed 1 --out-dir results/ab3\v3_s1 --json-out results/ab3\v3_s1.json --warm results/hard_final --destroy models/destroy_v3.pt --anneal 0.05
+[ab] v3_s1: aggregate 1.3038, 57.3 improving moves/min per case
+[ab] v3_s2: engine.run --suite benchmarks_hard --workers 9 --lns-seconds 600.0 --seed 2 --out-dir results/ab3\v3_s2 --json-out results/ab3\v3_s2.json --warm results/hard_final --destroy models/destroy_v3.pt --anneal 0.05
+[ab] v3_s2: aggregate 1.3049, 54.2 improving moves/min per case
+| config | mean aggregate | per seed | improving moves/min |
+|---|---:|---|---:|
+| v2 | 1.3043 | 1.3042, 1.3045 | 51.0 |
+| v3 | 1.3043 | 1.3038, 1.3049 | 55.8 |
+[ab] winner: v2

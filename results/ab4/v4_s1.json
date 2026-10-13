@@ -1,0 +1,97 @@
+{
+ "aggregate": 1.3125143762238185,
+ "baseline": {
+  "case_01": 11938,
+  "case_02": 18910,
+  "case_03": 14724,
+  "case_04": 18077,
+  "case_05": 21051,
+  "case_06": 27134,
+  "case_07": 31341,
+  "case_08": 30886,
+  "case_09": 27802
+ },
+ "cases": [
+  {
+   "name": "case_01",
+   "legal": true,
+   "delay": 9040,
+   "seconds": 601.34,
+   "lns_moves": 216770,
+   "lns_improving": 1135,
+   "lns_start": 9040.0
+  },
+  {
+   "name": "case_03",
+   "legal": true,
+   "delay": 11564,
+   "seconds": 601.38,
+   "lns_moves": 167494,
+   "lns_improving": 495,
+   "lns_start": 11564.0
+  },
+  {
+   "name": "case_04",
+   "legal": true,
+   "delay": 14095,
+   "seconds": 601.4,
+   "lns_moves": 147521,
+   "lns_improving": 463,
+   "lns_start": 14095.0
+  },
+  {
+   "name": "case_02",
+   "legal": true,
+   "delay": 13704,
+   "seconds": 601.42,
+   "lns_moves": 276001,
+   "lns_improving": 470,
+   "lns_start": 13704.0
+  },
+  {
+   "name": "case_05",
+   "legal": true,
+   "delay": 16463,
+   "seconds": 601.4,
+   "lns_moves": 146161,
+   "lns_improving": 462,
+   "lns_start": 16463.0
+  },
+  {
+   "name": "case_06",
+   "legal": true,
+   "delay": 20710,
+   "seconds": 601.42,
+   "lns_moves": 133487,
+   "lns_improving": 423,
+   "lns_start": 20710.0
+  },
+  {
+   "name": "case_07",
+   "legal": true,
+   "delay": 22359,
+   "seconds": 601.52,
+   "lns_moves": 115720,
+   "lns_improving": 887,
+   "lns_start": 22359.0
+  },
+  {
+   "name": "case_08",
+   "legal": true,
+   "delay": 23036,
+   "seconds": 601.55,
+   "lns_moves": 98478,
+   "lns_improving": 535,
+   "lns_start": 23036.0
+  },
+  {
+   "name": "case_09",
+   "legal": true,
+   "delay": 22534,
+   "seconds": 601.59,
+   "lns_moves": 72799,
+   "lns_improving": 532,
+   "lns_start": 22534.0
+  }
+ ]
+}

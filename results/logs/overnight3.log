@@ -1,0 +1,24 @@
+=== 20:17 start
+=== 21:16 data done: 150 instances
+=== 21:25 trained: [ref]   seed: regret AUC 0.450 hit@10% 0.223 | partner: block-frac AUC 0.366 | best: epoch   4  seed AUC 0.562 hit@10% 0.209 | partner AUC 0.548  * best
+=== 22:08 A/B winner: v2
+| config | mean aggregate | per seed | improving moves/min |
+|---|---:|---|---:|
+| v2 | 1.3043 | 1.3042, 1.3045 | 51.0 |
+| v3 | 1.3043 | 1.3038, 1.3049 | 55.8 |
+
+winner: v2
+=== 01:09 long runs done
+  case_01: 1.3206  from hard_v3_3h
+  case_02: 1.3799  from hard_v3_3h
+  case_03: 1.2733  from hard_v3_3h
+  case_04: 1.2825  from v3_s2
+  case_05: 1.2787  from hard_v3_3h
+  case_06: 1.3102  from hard_v3_3h
+  case_07: 1.4017  from hard_v3_3h
+  case_08: 1.3408  from hard_v3_3h
+  case_09: 1.2338  from hard_final
+  ctrl: 1.3926  from designs_v3_3h
+  int2float: 1.5672  from designs_v3_3h
+  router: 1.1428  from designs_v3_3h
+=== 01:09 done -> results/MORNING_SUMMARY3.md

@@ -1,0 +1,63 @@
+[destroy3] 516 train / 84 val snapshots, node positive rate 0.023, partner positive rate 0.026
+[ref]   seed: regret AUC 0.450 hit@10% 0.223 | partner: block-frac AUC 0.366
+epoch   1  seed AUC 0.489 hit@10% 0.152 | partner AUC 0.536  * best
+epoch   2  seed AUC 0.549 hit@10% 0.176 | partner AUC 0.543  * best
+epoch   3  seed AUC 0.555 hit@10% 0.181 | partner AUC 0.547  * best
+epoch   4  seed AUC 0.562 hit@10% 0.209 | partner AUC 0.548  * best
+epoch   5  seed AUC 0.551 hit@10% 0.196 | partner AUC 0.552
+epoch   6  seed AUC 0.560 hit@10% 0.193 | partner AUC 0.550
+epoch   7  seed AUC 0.553 hit@10% 0.214 | partner AUC 0.551
+epoch   8  seed AUC 0.557 hit@10% 0.160 | partner AUC 0.550
+epoch   9  seed AUC 0.548 hit@10% 0.129 | partner AUC 0.553
+epoch  10  seed AUC 0.549 hit@10% 0.156 | partner AUC 0.549
+epoch  11  seed AUC 0.530 hit@10% 0.141 | partner AUC 0.534
+epoch  12  seed AUC 0.540 hit@10% 0.185 | partner AUC 0.538
+epoch  13  seed AUC 0.537 hit@10% 0.149 | partner AUC 0.544
+epoch  14  seed AUC 0.513 hit@10% 0.151 | partner AUC 0.529
+epoch  15  seed AUC 0.528 hit@10% 0.158 | partner AUC 0.535
+epoch  16  seed AUC 0.527 hit@10% 0.160 | partner AUC 0.537
+epoch  17  seed AUC 0.511 hit@10% 0.145 | partner AUC 0.521
+epoch  18  seed AUC 0.509 hit@10% 0.177 | partner AUC 0.522
+epoch  19  seed AUC 0.496 hit@10% 0.163 | partner AUC 0.506
+epoch  20  seed AUC 0.496 hit@10% 0.157 | partner AUC 0.501
+epoch  21  seed AUC 0.514 hit@10% 0.192 | partner AUC 0.524
+epoch  22  seed AUC 0.505 hit@10% 0.139 | partner AUC 0.511
+epoch  23  seed AUC 0.480 hit@10% 0.124 | partner AUC 0.490
+epoch  24  seed AUC 0.516 hit@10% 0.168 | partner AUC 0.513
+epoch  25  seed AUC 0.521 hit@10% 0.157 | partner AUC 0.521
+epoch  26  seed AUC 0.500 hit@10% 0.134 | partner AUC 0.495
+epoch  27  seed AUC 0.544 hit@10% 0.177 | partner AUC 0.520
+epoch  28  seed AUC 0.512 hit@10% 0.159 | partner AUC 0.507
+epoch  29  seed AUC 0.527 hit@10% 0.160 | partner AUC 0.526
+epoch  30  seed AUC 0.549 hit@10% 0.194 | partner AUC 0.531
+epoch  31  seed AUC 0.523 hit@10% 0.172 | partner AUC 0.510
+epoch  32  seed AUC 0.540 hit@10% 0.175 | partner AUC 0.525
+epoch  33  seed AUC 0.526 hit@10% 0.160 | partner AUC 0.515
+epoch  34  seed AUC 0.545 hit@10% 0.190 | partner AUC 0.531
+epoch  35  seed AUC 0.526 hit@10% 0.180 | partner AUC 0.517
+epoch  36  seed AUC 0.545 hit@10% 0.155 | partner AUC 0.536
+epoch  37  seed AUC 0.531 hit@10% 0.171 | partner AUC 0.522
+epoch  38  seed AUC 0.531 hit@10% 0.193 | partner AUC 0.531
+epoch  39  seed AUC 0.521 hit@10% 0.175 | partner AUC 0.513
+epoch  40  seed AUC 0.523 hit@10% 0.195 | partner AUC 0.517
+epoch  41  seed AUC 0.518 hit@10% 0.175 | partner AUC 0.515
+epoch  42  seed AUC 0.527 hit@10% 0.190 | partner AUC 0.522
+epoch  43  seed AUC 0.514 hit@10% 0.201 | partner AUC 0.515
+epoch  44  seed AUC 0.535 hit@10% 0.204 | partner AUC 0.525
+epoch  45  seed AUC 0.521 hit@10% 0.222 | partner AUC 0.517
+epoch  46  seed AUC 0.524 hit@10% 0.206 | partner AUC 0.517
+epoch  47  seed AUC 0.518 hit@10% 0.206 | partner AUC 0.515
+epoch  48  seed AUC 0.522 hit@10% 0.227 | partner AUC 0.512
+epoch  49  seed AUC 0.518 hit@10% 0.198 | partner AUC 0.517
+epoch  50  seed AUC 0.521 hit@10% 0.226 | partner AUC 0.518
+epoch  51  seed AUC 0.525 hit@10% 0.228 | partner AUC 0.518
+epoch  52  seed AUC 0.523 hit@10% 0.206 | partner AUC 0.521
+epoch  53  seed AUC 0.525 hit@10% 0.213 | partner AUC 0.523
+epoch  54  seed AUC 0.524 hit@10% 0.213 | partner AUC 0.521
+epoch  55  seed AUC 0.523 hit@10% 0.220 | partner AUC 0.521
+epoch  56  seed AUC 0.524 hit@10% 0.205 | partner AUC 0.522
+epoch  57  seed AUC 0.525 hit@10% 0.212 | partner AUC 0.521
+epoch  58  seed AUC 0.525 hit@10% 0.205 | partner AUC 0.521
+epoch  59  seed AUC 0.525 hit@10% 0.205 | partner AUC 0.522
+epoch  60  seed AUC 0.525 hit@10% 0.205 | partner AUC 0.522
+[destroy3] saved models/destroy_v3.pt

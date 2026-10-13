@@ -36,11 +36,16 @@ def _job(job: Dict) -> Dict:
     if job.get("destroy"):
         from gnn.destroy import load_policy
         policy = load_policy(job["destroy"])
+    warm = None
+    if job.get("warm") and os.path.exists(job["warm"]):
+        from engine.fast import routes_from_submission
+        from m3d.model import Submission
+        warm = routes_from_submission(inst, Submission.load(job["warm"]))
     t0 = time.time()
     sub, st = solve(inst, job["prior"], job["tile"], job["alpha"], job["max_iters"],
                     job["refine_passes"], lns_seconds=job["lns_seconds"], lns_k=job["lns_k"],
                     seed=job["seed"], policy=policy, anneal=job["anneal"], mix=job["mix"],
-                    stall_kick=job["stall_kick"])
+                    stall_kick=job["stall_kick"], warm=warm, cong=job.get("cong"))
     secs = time.time() - t0 + job["infer"]
     out = {"name": job["name"], "seconds": round(secs, 2), "legal": False, "delay": None, **st}
     if sub is not None:
@@ -69,6 +74,11 @@ def main(argv=None) -> None:
     ap.add_argument("--stall-kick", type=float, default=2.0,
                     help="seconds without improvement before a negotiated move (0 = off)")
     ap.add_argument("--destroy", help="destroy-policy GNN checkpoint: picks what LNS rips up")
+    ap.add_argument("--warm", help="folder of saved solutions to continue from (warm start)")
+    ap.add_argument("--cong-ckpt", default=None,
+                    help="congestion GNN whose predictions feed destroy-GNN v3 features "
+                         "(default: models/v3_engine.pt when --destroy is a v3 model)")
+    ap.add_argument("--json-out", help="write per-case results as JSON (for gnn/ab.py)")
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--cases", nargs="*")
     ap.add_argument("--out-dir")
@@ -88,6 +98,23 @@ def main(argv=None) -> None:
             inst = Instance.load(os.path.join(suite, c["instance_file"]))
             t0 = time.time()
             preds[c["name"]] = (predict(model, ck, inst, dev), time.time() - t0)
+    # congestion predictions as destroy-GNN v3 features (no effect on routing costs)
+    congs = {}
+    cong_ckpt = args.cong_ckpt
+    if cong_ckpt is None and args.destroy:
+        import torch
+        ckd = torch.load(args.destroy, map_location="cpu", weights_only=False)
+        if ckd["config"].get("version", 2) >= 3:
+            cong_ckpt = os.path.join(os.path.dirname(os.path.dirname(
+                os.path.abspath(__file__))), "models", "v3_engine.pt")
+    if cong_ckpt:
+        import torch
+        from gnn.predict import load_model, predict
+        dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        cm, cck = load_model(cong_ckpt, dev)
+        for c in cases:
+            inst = Instance.load(os.path.join(suite, c["instance_file"]))
+            congs[c["name"]] = predict(cm, cck, inst, dev)
     if args.out_dir:
         os.makedirs(args.out_dir, exist_ok=True)
     jobs = [{"case": os.path.join(suite, c["instance_file"]), "name": c["name"],
@@ -96,7 +123,8 @@ def main(argv=None) -> None:
              "max_iters": args.max_iters, "refine_passes": args.refine_passes,
              "lns_seconds": args.lns_seconds, "lns_k": args.lns_k, "seed": args.seed,
              "destroy": args.destroy, "anneal": args.anneal, "mix": tuple(args.mix),
-             "stall_kick": args.stall_kick,
+             "stall_kick": args.stall_kick, "cong": congs.get(c["name"]),
+             "warm": os.path.join(args.warm, f"{c['name']}.sol.json") if args.warm else None,
              "out": os.path.join(args.out_dir, f"{c['name']}.sol.json") if args.out_dir else None}
             for c in cases]
     base = {c["name"]: c["baseline_total"] for c in cases}
@@ -123,6 +151,12 @@ def main(argv=None) -> None:
     if args.out_dir:
         with open(os.path.join(args.out_dir, "runtime.json"), "w") as fh:
             json.dump({r["name"]: r["seconds"] for r in results}, fh, indent=1)
+    if args.json_out:
+        keep = ("name", "legal", "delay", "seconds", "lns_moves", "lns_improving", "lns_start")
+        with open(args.json_out, "w") as fh:
+            json.dump({"aggregate": agg if len(ok) == len(results) else 0.0,
+                       "baseline": base,
+                       "cases": [{k_: r.get(k_) for k_ in keep} for r in results]}, fh, indent=1)
 
 
 if __name__ == "__main__":

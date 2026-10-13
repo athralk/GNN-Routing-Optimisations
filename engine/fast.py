@@ -281,6 +281,9 @@ class FastRouter:
                 self.pin_owner[pin_v[pid]] = net.id
         self.occ_v = np.zeros(n, dtype=np.int64)
         self.occ_e = np.zeros(3 * n, dtype=np.int64)
+        self.owner_v = np.full(n, -1, dtype=np.int64)
+        self.cong = None        # optional congestion-GNN prediction [L, TH, TW, 2] (features)
+        self.cong_tile = 4
         self.hist_v = np.zeros(n, dtype=np.float64)
         self.hist_e = np.zeros(3 * n, dtype=np.float64)
         # scratch arrays reused by every Dijkstra call
@@ -310,6 +313,7 @@ class FastRouter:
     def _add(self, nid, tv, te, d):
         self.occ_v[tv] += 1
         self.occ_e[te] += 1
+        self.owner_v[tv] = nid          # which net sits on a vertex (exact once legal)
         self.routes[nid] = (tv, te)
         self.delay[nid] = d
 
@@ -317,6 +321,8 @@ class FastRouter:
         tv, te = self.routes.pop(nid)
         self.occ_v[tv] -= 1
         self.occ_e[te] -= 1
+        mine = tv[self.owner_v[tv] == nid]
+        self.owner_v[mine] = -1
         self.delay.pop(nid, None)
 
     def _route(self, nid, pres_fac, hard, prior_scale=0.0):
@@ -421,9 +427,11 @@ class FastRouter:
         saved = self.occ_v, self.occ_e
         self.occ_v, self.occ_e = zv, ze
         ideal = {}
+        self._ideal_tv = {}
         for nid in self.driver:
-            _, _, d = self._route(nid, 0.0, True)
+            tv, _, d = self._route(nid, 0.0, True)
             ideal[nid] = d
+            self._ideal_tv[nid] = tv            # the route this net would take if alone
         self.occ_v, self.occ_e = saved
         return ideal
 
@@ -449,6 +457,29 @@ class FastRouter:
             ov = np.nonzero((bb[:, 0] <= x1 + margin) & (bb[:, 1] >= x0 - margin) &
                             (bb[:, 2] <= y1 + margin) & (bb[:, 3] >= y0 - margin))[0]
             self._nbrs.append(ov[ov != i])
+        self._idx = {int(nid): i for i, nid in enumerate(nets)}
+        # search history per net (features for the destroy GNN v3)
+        self._tries = np.zeros(len(nets))
+        self._wins = np.zeros(len(nets))
+        self._last_win = np.zeros(len(nets))
+        self._moves_done = 0
+        self._partner = None
+        self._cong_feat = self._pool_congestion()
+
+    def _pool_congestion(self) -> np.ndarray:
+        """Mean predicted usage (congestion GNN) over each net's bounding box: all
+        layers, and the fastest layers only. Zeros when no prediction was given."""
+        out = np.zeros((len(self._nets), 2), dtype=np.float32)
+        if self.cong is None:
+            return out
+        t = self.cong_tile
+        fast = np.nonzero(self.ldelay == self.ldelay.min())[0]
+        lat = self.cong[..., 0]
+        for i in range(len(self._nets)):
+            x0, x1, y0, y1 = self._bb[i]
+            win = lat[:, y0 // t:y1 // t + 1, x0 // t:x1 // t + 1]
+            out[i] = (win.mean(), win[fast].mean())
+        return out
 
     def _move(self, s: int, rng, k: int, commit: bool):
         """Rip up net index s plus up to k-1 random overlapping nets, reroute exactly
@@ -589,6 +620,7 @@ class FastRouter:
     def _restore(self, routes, delay) -> None:
         self.occ_v[:] = 0
         self.occ_e[:] = 0
+        self.owner_v[:] = -1
         self.routes, self.delay = {}, {}
         for n, (tv, te) in routes.items():
             self._add(n, tv, te, delay[n])
@@ -634,7 +666,12 @@ class FastRouter:
             if moves % 50 == 0 or probs is None:
                 reg = self.regret_probs()
                 if policy is not None and (moves % refresh == 0 or probs is None):
-                    pol = policy(self)
+                    res = policy(self)
+                    # v3 policies also return learned partner choices per seed
+                    if isinstance(res, dict):
+                        pol, self._partner = res["seed"], res.get("partners")
+                    else:
+                        pol, self._partner = res, None
                 probs = reg if policy is None else (1 - explore) * pol + explore * reg
             s = rng.choice(len(self._nets), p=probs)
             kind = ("greedy", "negotiated", "window")[rng.choice(3, p=mix)]
@@ -645,18 +682,21 @@ class FastRouter:
                 group = self._window_group(s, rng)
             else:
                 kk = k if kind == "greedy" else int(rng.integers(6, 15))
-                nb = self._nbrs[s]
-                pick = [s] + list(rng.choice(nb, size=min(kk - 1, len(nb)), replace=False))
-                group = [int(self._nets[i]) for i in pick]
+                group = self._pick_group(s, kk, rng, explore)
             thr = anneal * mean_net * (1.0 - el / time_limit)
             gain = self._try_group(group, rng, kind != "greedy", thr)
             moves += 1
+            self._moves_done += 1
             counts[kind][0] += 1
+            gi = [self._idx[n] for n in group]
+            self._tries[gi] += 1
             if gain is not None:
                 total -= gain
                 if gain > 1e-9:
                     counts[kind][1] += 1
                     last_gain_t = time.time()
+                    self._wins[gi] += 1
+                    self._last_win[gi] = self._moves_done
                 if total < best_total - 1e-9:
                     best_total, best = total, (dict(self.routes), dict(self.delay))
         if self.total_delay() > best_total + 1e-9:
@@ -666,6 +706,170 @@ class FastRouter:
                 "improving_by_kind": {k_: c[1] for k_, c in counts.items()},
                 "start": start, "end": self.total_delay(),
                 "ideal": sum(self._ideal.values())}
+
+    def _pick_group(self, s: int, kk: int, rng, explore: float = 0.2) -> List[int]:
+        """Seed net s plus kk-1 partners: learned (destroy GNN v3 partner head, mixed
+        with ``explore`` uniform) when available, otherwise uniform over overlapping nets."""
+        if self._partner is not None and len(self._partner[s][0]):
+            cands, pr = self._partner[s]
+            q = (1 - explore) * pr + explore / len(cands)
+            q = q / q.sum()
+            pick = list(rng.choice(cands, size=min(kk - 1, len(cands)), replace=False, p=q))
+        else:
+            nb = self._nbrs[s]
+            pick = list(rng.choice(nb, size=min(kk - 1, len(nb)), replace=False))
+        return [int(self._nets[i]) for i in [s] + pick]
+
+    # -- destroy GNN v3: blocking graph + history features ---------------------
+    NET_FEATURES_V3 = ["regret_ratio", "log_regret", "log_fanout", "log_hpwl", "cross_die",
+                       "log_degree", "local_occupancy", "detour", "log_ideal_per_sink",
+                       "fast_layer_share", "blocked_frac", "log_n_blockers", "log_blocking",
+                       "log_tries", "win_rate", "log_moves_since_win",
+                       "cong_mean", "cong_fast"]
+    EDGE_FEATURES_V3 = ["overlap", "src_blocks_dst", "dst_blocks_src", "block_frac",
+                        "bbox_overlap_frac"]
+
+    def net_graph_v3(self):
+        """Nodes = nets. Edges (both directions) between nets whose boxes overlap, plus
+        *blocking* edges: net j sits on part of net i's ideal (alone) route -- the
+        direct cause of i's lost delay. Returns x [N, F], edge_index [2, E], edge_attr [E, 5]."""
+        self.prepare_lns()
+        x9, _ = self.net_features()
+        N = len(self._nets)
+        WH = self.W * self.H
+        fastz = self.ldelay == self.ldelay.min()
+        blk = {}                                     # (blocker j, blocked i) -> frac
+        n_blockers = np.zeros(N); blocking = np.zeros(N); blocked_frac = np.zeros(N)
+        for i, nid in enumerate(self._nets):
+            itv = self._ideal_tv[int(nid)]
+            own = self.owner_v[itv]
+            others = own[(own >= 0) & (own != nid)]
+            blocked_frac[i] = len(others) / max(1, len(itv))
+            if len(others):
+                js, cnt = np.unique(others, return_counts=True)
+                n_blockers[i] = len(js)
+                for j, c in zip(js, cnt):
+                    jj = self._idx[int(j)]
+                    blk[(jj, i)] = c / len(itv)
+                    blocking[jj] += 1
+        fast_share = np.zeros(N)
+        for i, nid in enumerate(self._nets):
+            te = self.routes[int(nid)][1]
+            lat = te[te % 3 < 2]
+            fast_share[i] = fastz[(lat // 3) // WH].mean() if len(lat) else 0.0
+        hist = np.stack([np.log1p(self._tries), (self._wins + 1) / (self._tries + 2),
+                         np.log1p(self._moves_done - self._last_win)], 1)
+        x = np.concatenate([x9, np.stack([fast_share, blocked_frac, np.log1p(n_blockers),
+                                          np.log1p(blocking)], 1), hist, self._cong_feat],
+                           1).astype(np.float32)
+        # edges: union of overlap pairs and blocking pairs, both directions
+        bb = self._bb
+        nbset = [set(nb.tolist()) for nb in self._nbrs]
+        pairs = {}
+        for i, nb in enumerate(self._nbrs):
+            for j in nb:
+                pairs[(i, int(j))] = None
+        for (j, i) in blk:
+            pairs[(j, i)] = None
+            pairs[(i, j)] = None
+        src = np.fromiter((a for a, _ in pairs), dtype=np.int64, count=len(pairs))
+        dst = np.fromiter((b for _, b in pairs), dtype=np.int64, count=len(pairs))
+        ea = np.zeros((len(pairs), 5), dtype=np.float32)
+        for e, (a, b) in enumerate(pairs):
+            ov = (min(bb[a, 1], bb[b, 1]) - max(bb[a, 0], bb[b, 0]) + 1) * \
+                 (min(bb[a, 3], bb[b, 3]) - max(bb[a, 2], bb[b, 2]) + 1)
+            area = min((bb[a, 1] - bb[a, 0] + 1) * (bb[a, 3] - bb[a, 2] + 1),
+                       (bb[b, 1] - bb[b, 0] + 1) * (bb[b, 3] - bb[b, 2] + 1))
+            f_ab, f_ba = blk.get((a, b), 0.0), blk.get((b, a), 0.0)
+            ea[e] = (1.0 if b in nbset[a] else 0.0, float(f_ab > 0), float(f_ba > 0),
+                     max(f_ab, f_ba), max(0, ov) / max(1, area))
+        return x, np.stack([src, dst]), ea
+
+    def _trial(self, group, rng) -> Optional[float]:
+        """What-if: rip up ``group``, reroute greedily in random order, always restore."""
+        old = {n: (self.routes[n], self.delay[n]) for n in group}
+        old_sum = sum(d for _, d in old.values())
+        for n in group:
+            self._remove(n)
+        new_sum, ok = 0.0, True
+        for n in rng.permutation(group):
+            tv, te, d = self._route(int(n), 0.0, True)
+            if d < 0:
+                ok = False
+                break
+            self._add(int(n), tv, te, d)
+            new_sum += d
+        for n in group:
+            if n in self.routes:
+                self._remove(n)
+        for n, ((tv, te), d) in old.items():
+            self._add(n, tv, te, d)
+        return (old_sum - new_sum) if ok else None
+
+    def snapshot_labels_v3(self, tries: int, rng, k: int = 8):
+        """Node labels (improvement rate when seeding at a net) and edge labels
+        (improvement rate when the edge's dst is ripped together with seed src).
+        Partners are drawn uniformly from the seed's v3 graph neighbours."""
+        x, ei, ea = self.net_graph_v3()
+        N = len(self._nets)
+        nbr = [[] for _ in range(N)]
+        eid = {}
+        for e in range(ei.shape[1]):
+            nbr[ei[0, e]].append(ei[1, e])
+            eid[(int(ei[0, e]), int(ei[1, e]))] = e
+        rate = np.zeros(N, dtype=np.float32)
+        y = np.zeros(N, dtype=np.float32)
+        e_win = np.zeros(ei.shape[1], dtype=np.float32)
+        e_cnt = np.zeros(ei.shape[1], dtype=np.float32)
+        for i in range(N):
+            cands = np.asarray(nbr[i], dtype=np.int64)
+            for _ in range(tries):
+                pick = (list(rng.choice(cands, size=min(k - 1, len(cands)), replace=False))
+                        if len(cands) else [])
+                g = self._trial([int(self._nets[j]) for j in [i] + pick], rng)
+                win = g is not None and g > 1e-9
+                rate[i] += win / tries
+                y[i] = max(y[i], float(win))
+                for j in pick:
+                    e = eid[(i, int(j))]
+                    e_cnt[e] += 1
+                    e_win[e] += win
+        return x, ei, ea, y, rate, e_win, e_cnt
+
+    def snapshot_labels_v4(self, tries: int, rng, k: int = 8):
+        """Phase 3 labels: like v3, plus the *size* of improvements. For every net:
+        mean positive gain per try (node target for the ranking loss); for every
+        (seed, partner) edge: summed positive gain and count."""
+        x, ei, ea = self.net_graph_v3()
+        N = len(self._nets)
+        nbr = [[] for _ in range(N)]
+        eid = {}
+        for e in range(ei.shape[1]):
+            nbr[ei[0, e]].append(ei[1, e])
+            eid[(int(ei[0, e]), int(ei[1, e]))] = e
+        rate = np.zeros(N, dtype=np.float32)
+        y = np.zeros(N, dtype=np.float32)
+        gain = np.zeros(N, dtype=np.float32)
+        e_win = np.zeros(ei.shape[1], dtype=np.float32)
+        e_gain = np.zeros(ei.shape[1], dtype=np.float32)
+        e_cnt = np.zeros(ei.shape[1], dtype=np.float32)
+        for i in range(N):
+            cands = np.asarray(nbr[i], dtype=np.int64)
+            for _ in range(tries):
+                pick = (list(rng.choice(cands, size=min(k - 1, len(cands)), replace=False))
+                        if len(cands) else [])
+                g = self._trial([int(self._nets[j]) for j in [i] + pick], rng)
+                gp = max(0.0, g) if g is not None else 0.0
+                win = gp > 1e-9
+                rate[i] += win / tries
+                gain[i] += gp / tries
+                y[i] = max(y[i], float(win))
+                for j in pick:
+                    e = eid[(i, int(j))]
+                    e_cnt[e] += 1
+                    e_win[e] += win
+                    e_gain[e] += gp
+        return x, ei, ea, y, rate, gain, e_win, e_gain, e_cnt
 
     # -- destroy-policy data -------------------------------------------------
     NET_FEATURES = ["regret_ratio", "log_regret", "log_fanout", "log_hpwl", "cross_die",
@@ -748,18 +952,64 @@ def build_router(inst: Instance, prior=None, tile=4, alpha=1.0, max_iters=100,
     return None
 
 
+def routes_from_submission(inst: Instance, sub: Submission) -> Dict[int, Tuple]:
+    """A saved legal solution -> engine routes {net id: (vertex ids, edge ids, delay)}.
+    Used for warm starts: a new run continues from the best solution so far."""
+    W, H = inst.width, inst.height
+    vid = lambda c: (c[2] * H + c[1]) * W + c[0]
+    pin_v = {p.id: vid((p.x, p.y, p.z)) for p in inst.pins}
+    nets = {n.id: n for n in inst.nets}
+    out = {}
+    for r in sub.routes:
+        adj: Dict[int, List[Tuple[int, float]]] = {}
+        eids = []
+        for u, v in r.edges:
+            a, b = vid(u), vid(v)
+            w = inst.edge_delay(tuple(u), tuple(v))
+            adj.setdefault(a, []).append((b, w)); adj.setdefault(b, []).append((a, w))
+            lo, hi = min(a, b), max(a, b)
+            d = {1: 0, W: 1}.get(hi - lo, 2)
+            eids.append(3 * lo + d)
+        net = nets[r.net]
+        drv = pin_v[net.driver]
+        dist = {drv: 0.0}
+        stack = [drv]
+        while stack:
+            u = stack.pop()
+            for v, w in adj.get(u, []):
+                if v not in dist:
+                    dist[v] = dist[u] + w
+                    stack.append(v)
+        delay = float(sum(dist[pin_v[s_]] for s_ in set(net.sinks)))
+        tv = np.array(sorted(set(adj) | {drv}), dtype=np.int64)
+        out[r.net] = (tv, np.array(eids, dtype=np.int64), delay)
+    return out
+
+
 def solve(inst: Instance, prior=None, tile=4, alpha=1.0, max_iters=100,
           refine_passes=20, betas=(0.5, 0.25, 0.0), lns_seconds: float = 0.0,
           lns_k: int = 8, seed: int = 0, policy=None, anneal: float = 0.1,
-          mix=(1.0, 0.0, 0.0), stall_kick: float = 2.0) -> Tuple[Optional[Submission], Dict]:
-    """Negotiate with the first beta that reaches legality, then refine exactly."""
+          mix=(1.0, 0.0, 0.0), stall_kick: float = 2.0, warm: Optional[Dict] = None,
+          cong: Optional[np.ndarray] = None) -> Tuple[Optional[Submission], Dict]:
+    """Negotiate with the first beta that reaches legality (or start from ``warm``
+    routes), refine exactly, then LNS. ``cong`` = congestion-GNN prediction, used only
+    as destroy-GNN v3 features."""
     t0 = time.time()
-    for beta in betas:
+    ok = False
+    if warm is not None:
         r = FastRouter(inst, prior, tile, alpha)
-        r.beta = beta
-        ok = r.negotiate(max_iters=max_iters)
-        if ok:
-            break
+        r.load_routes(warm)
+        ok = bool((r.occ_v <= 1).all() and (r.occ_e <= 1).all())
+        beta = "warm"
+        r.iterations = 0
+    if not ok:
+        for beta in betas:
+            r = FastRouter(inst, prior, tile, alpha)
+            r.beta = beta
+            ok = r.negotiate(max_iters=max_iters)
+            if ok:
+                break
+    r.cong = cong
     stats = {"legal_negotiated": ok, "iterations": getattr(r, "iterations", -1),
              "beta": beta, "t_negotiate": time.time() - t0}
     if not ok:
