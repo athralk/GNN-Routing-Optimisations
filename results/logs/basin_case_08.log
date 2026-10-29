@@ -1,0 +1,30 @@
+17:21:30 [case_08] start 1.3408; hops until 19:30, settle 120s, kick 10%-25% of nets, T 0.002
+17:23:30 [case_08] hop 1: kicked 14 nets -> 1.2846 -> settled 1.3033  reject | current 1.3408 best 1.3408
+17:25:31 [case_08] hop 2: kicked 20 nets -> 1.2398 -> settled 1.2919  reject | current 1.3408 best 1.3408
+17:27:31 [case_08] hop 3: kicked 13 nets -> 1.2815 -> settled 1.3212  reject | current 1.3408 best 1.3408
+17:29:31 [case_08] hop 4: kicked 10 nets -> 1.3160 -> settled 1.3273  reject | current 1.3408 best 1.3408
+17:29:32 [case_08] hop 5: kick of 12 nets could not be legalized
+17:31:32 [case_08] hop 6: kicked 11 nets -> 1.2425 -> settled 1.3064  reject | current 1.3408 best 1.3408
+17:33:32 [case_08] hop 7: kicked 23 nets -> 1.1964 -> settled 1.2814  reject | current 1.3408 best 1.3408
+17:35:33 [case_08] hop 8: kicked 21 nets -> 1.1669 -> settled 1.2617  reject | current 1.3408 best 1.3408
+17:37:33 [case_08] hop 9: kicked 10 nets -> 1.3387 -> settled 1.3387  reject | current 1.3408 best 1.3408
+17:37:34 [case_08] hop 10: kick of 21 nets could not be legalized
+17:39:34 [case_08] hop 11: kicked 10 nets -> 1.3139 -> settled 1.3214  reject | current 1.3408 best 1.3408
+17:41:34 [case_08] hop 12: kicked 22 nets -> 1.2334 -> settled 1.2890  reject | current 1.3408 best 1.3408
+17:43:35 [case_08] hop 13: kicked 21 nets -> 1.2243 -> settled 1.2992  reject | current 1.3408 best 1.3408
+17:43:35 [case_08] hop 14: kick of 12 nets could not be legalized
+17:45:36 [case_08] hop 15: kicked 23 nets -> 1.1393 -> settled 1.2662  reject | current 1.3408 best 1.3408
+17:47:36 [case_08] hop 16: kicked 17 nets -> 1.2709 -> settled 1.3040  reject | current 1.3408 best 1.3408
+17:47:37 [case_08] hop 17: kick of 23 nets could not be legalized
+17:49:37 [case_08] hop 18: kicked 15 nets -> 1.2934 -> settled 1.3122  reject | current 1.3408 best 1.3408
+17:49:38 [case_08] hop 19: kick of 16 nets could not be legalized
+17:51:38 [case_08] hop 20: kicked 23 nets -> 1.2964 -> settled 1.3223  reject | current 1.3408 best 1.3408
+17:53:38 [case_08] hop 21: kicked 17 nets -> 1.2289 -> settled 1.2851  reject | current 1.3408 best 1.3408
+17:55:39 [case_08] hop 22: kicked 15 nets -> 1.2935 -> settled 1.3207  reject | current 1.3408 best 1.3408
+17:55:39 [case_08] hop 23: kick of 19 nets could not be legalized
+17:57:40 [case_08] hop 24: kicked 12 nets -> 1.2800 -> settled 1.3133  reject | current 1.3408 best 1.3408
+17:59:40 [case_08] hop 25: kicked 17 nets -> 1.2336 -> settled 1.2799  reject | current 1.3408 best 1.3408
+18:01:41 [case_08] hop 26: kicked 17 nets -> 1.2851 -> settled 1.3174  reject | current 1.3408 best 1.3408
+18:01:41 [case_08] hop 27: kick of 13 nets could not be legalized
+18:03:42 [case_08] hop 28: kicked 20 nets -> 1.1648 -> settled 1.2671  reject | current 1.3408 best 1.3408
+18:03:42 [case_08] hop 29: kick of 12 nets could not be legalized

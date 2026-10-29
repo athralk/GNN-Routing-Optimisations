@@ -1,0 +1,22 @@
+17:21:30 [case_09] start 1.2338; hops until 19:30, settle 120s, kick 10%-25% of nets, T 0.002
+17:23:30 [case_09] hop 1: kicked 19 nets -> 1.1600 -> settled 1.2030  reject | current 1.2338 best 1.2338
+17:25:31 [case_09] hop 2: kicked 20 nets -> 1.1511 -> settled 1.2167  reject | current 1.2338 best 1.2338
+17:27:31 [case_09] hop 3: kicked 24 nets -> 1.1223 -> settled 1.2049  reject | current 1.2338 best 1.2338
+17:29:32 [case_09] hop 4: kicked 22 nets -> 1.1313 -> settled 1.2109  reject | current 1.2338 best 1.2338
+17:31:32 [case_09] hop 5: kicked 15 nets -> 1.1635 -> settled 1.2163  reject | current 1.2338 best 1.2338
+17:33:32 [case_09] hop 6: kicked 21 nets -> 1.1534 -> settled 1.2190  reject | current 1.2338 best 1.2338
+17:35:33 [case_09] hop 7: kicked 14 nets -> 1.1789 -> settled 1.2095  reject | current 1.2338 best 1.2338
+17:37:33 [case_09] hop 8: kicked 14 nets -> 1.1501 -> settled 1.2066  reject | current 1.2338 best 1.2338
+17:39:34 [case_09] hop 9: kicked 11 nets -> 1.2177 -> settled 1.2203  reject | current 1.2338 best 1.2338
+17:41:34 [case_09] hop 10: kicked 25 nets -> 1.0707 -> settled 1.1770  reject | current 1.2338 best 1.2338
+17:43:34 [case_09] hop 11: kicked 13 nets -> 1.1780 -> settled 1.2083  reject | current 1.2338 best 1.2338
+17:45:35 [case_09] hop 12: kicked 13 nets -> 1.2170 -> settled 1.2257  reject | current 1.2338 best 1.2338
+17:47:35 [case_09] hop 13: kicked 16 nets -> 1.1868 -> settled 1.2238  reject | current 1.2338 best 1.2338
+17:49:36 [case_09] hop 14: kicked 14 nets -> 1.1874 -> settled 1.2266  reject | current 1.2338 best 1.2338
+17:51:36 [case_09] hop 15: kicked 16 nets -> 1.1466 -> settled 1.2027  reject | current 1.2338 best 1.2338
+17:53:37 [case_09] hop 16: kicked 20 nets -> 1.1257 -> settled 1.1947  reject | current 1.2338 best 1.2338
+17:55:37 [case_09] hop 17: kicked 17 nets -> 1.1850 -> settled 1.2164  reject | current 1.2338 best 1.2338
+17:57:38 [case_09] hop 18: kicked 23 nets -> 1.1618 -> settled 1.2175  reject | current 1.2338 best 1.2338
+17:59:38 [case_09] hop 19: kicked 22 nets -> 1.1191 -> settled 1.1975  reject | current 1.2338 best 1.2338
+18:01:39 [case_09] hop 20: kicked 25 nets -> 1.0994 -> settled 1.1761  reject | current 1.2338 best 1.2338
+18:03:40 [case_09] hop 21: kicked 15 nets -> 1.1938 -> settled 1.2217  reject | current 1.2338 best 1.2338
